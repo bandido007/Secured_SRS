@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Activation Required</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; padding: 1rem 0; }
+        .logo { max-height: 50px; }
+        .content { background: #ffffff; padding: 2rem; border-radius: 12px; }
+        .button { background: #2563eb; color: white; padding: 12px 24px;
+                 text-decoration: none; border-radius: 8px; display: inline-block; }
+        .footer { text-align: center; padding: 2rem 0; color: #6b7280; }
+        .security-note { color: #ef4444; font-size: 0.875rem; margin-top: 1.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="content">
+            <h1>Activate Your Account</h1>
+            <p>Hello,</p>
+            <p>We received a request to activate the account for <strong>{{data.user.email}}</strong>.
+               Please click the button below to verify your email address:</p>
+
+            <div style="text-align: center; margin: 2rem 0;">
+                <a href="{{data.url}}" class="button">Verify Email Address</a>
+            </div>
+
+            <p>If you didn't request this activation, you can safely ignore this email.</p>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Swahili Sentiment Analysis. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[
+    {
+        "id": 0,
+        "status": false,
+        "code": 4000,
+        "message": "Bad Request or Error"
+    },
+    {
+        "id": 1,
+        "status": true,
+        "code": 2000,
+        "message": "Success"
+    },
+    {
+        "id": 2,
+        "status": false,
+        "code": 5000,
+        "message": "An Internal Error Occurred"
+    },
+    {
+        "id": 3,
+        "status": false,
+        "code": 4040,
+        "message": "Not Found"
+    }
+]
