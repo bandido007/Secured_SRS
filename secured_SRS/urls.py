@@ -5,6 +5,7 @@ from ninja import NinjaAPI
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
+from srs_utils.CreateUserAddSeedPermissions import CreateRolesAddPermissions
 
 from .srs_api_v1 import api_v1
 
@@ -31,9 +32,12 @@ urlpatterns = [
     path("token/access", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    
     path("api/", api_v1.urls, name="api_v1"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+CreateRolesAddPermissions() 
 
 # Seed roles and permissions AFTER server starts (not during migrations)
 # Run this manually: python manage.py seed_permissions

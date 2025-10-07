@@ -4,18 +4,25 @@ from django.contrib.auth.models import User
 from srs_accounts.models import UserProfile
 from srs_uaa.models import *
 
-from .permissions import permissions
+from .permissions import permissions, role_permission_mappings
 import logging
 
-logger = logging.getLogger("gateway_logger")
+logger = logging.getLogger("srs_logger")
 
+# Import role names from settings
 DEFAULT_SUPER_ADMIN_ROLE_NAME = settings.DEFAULT_SUPER_ADMIN_ROLE_NAME
+STUDENT_ROLE_NAME = settings.STUDENT_ROLE_NAME
+LECTURER_ROLE_NAME = settings.LECTURER_ROLE_NAME
 DEFAULT_NORMAL_USER_ROLE = settings.DEFAULT_NORMAL_USER_ROLE
 
 # add All Permissions From Other Modules Here
 all_permissions_added = permissions
-# Append Other Default Roles If Any
-all_default_roles_added = [DEFAULT_SUPER_ADMIN_ROLE_NAME, DEFAULT_NORMAL_USER_ROLE]
+# Append Other Default Roles If Any - RBAC System
+all_default_roles_added = [
+    DEFAULT_SUPER_ADMIN_ROLE_NAME,  # ADMIN
+    STUDENT_ROLE_NAME,               # STUDENT
+    LECTURER_ROLE_NAME,              # LECTURER
+]
 
 
 class CreateRolesAddPermissions:
@@ -102,12 +109,44 @@ class CreateRolesAddPermissions:
 
         all_user_permissions = UserPermissions.objects.all()
 
-        logger.info("PROVIDING ALL PERMISSIONS TO ADMIN")
+        # Assign permissions to roles based on role_permission_mappings
+        logger.info("ASSIGNING PERMISSIONS TO ROLES BASED ON RBAC MAPPINGS")
+        self.assign_role_permissions()
+
+        # ADMIN gets ALL permissions
+        logger.info("PROVIDING ALL PERMISSIONS TO ADMIN ROLE")
         for permission in all_user_permissions:
             UserRolesWithPermissions.objects.update_or_create(
                 role_with_permission_role=admin_role,
                 role_with_permission_permission=permission,
             )
+
+    def assign_role_permissions(self):
+        """
+        Assign specific permissions to STUDENT and LECTURER roles
+        based on the role_permission_mappings defined in permissions.py
+        """
+        for role_name, permission_codes in role_permission_mappings.items():
+            # Skip ADMIN role - it gets all permissions in the main seed method
+            if role_name == DEFAULT_SUPER_ADMIN_ROLE_NAME:
+                continue
+
+            role = UserRoles.objects.filter(name=role_name).first()
+            if not role:
+                logger.warning(f"Role {role_name} not found, skipping permission assignment")
+                continue
+
+            logger.info(f"Assigning {len(permission_codes)} permissions to {role_name} role")
+
+            for permission_code in permission_codes:
+                permission = UserPermissions.objects.filter(code=permission_code).first()
+                if permission:
+                    UserRolesWithPermissions.objects.update_or_create(
+                        role_with_permission_role=role,
+                        role_with_permission_permission=permission,
+                    )
+                else:
+                    logger.warning(f"Permission {permission_code} not found for role {role_name}")
 
     def create_default_roles(self):
 
@@ -136,7 +175,7 @@ class CreateRolesAddPermissions:
                     profile_user=user,
                     defaults={
                         "is_active": True,
-                        "account_type": "ADMIN",
+                        "account_type": DEFAULT_SUPER_ADMIN_ROLE_NAME,  # "ADMIN"
                         "has_been_verified": True,
                     },
                 )

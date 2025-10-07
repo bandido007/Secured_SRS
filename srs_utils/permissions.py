@@ -5,8 +5,14 @@ Based on use cases:
 - Students: Submit personal info, view own records, verify integrity, prove credentials
 - Lecturers: Submit grades, verify grades, view submission history
 - Administrators: Manage users, assign permissions, verify records, audit system
+
+RBAC Structure:
+- User → Role → Permissions
+- Roles: ADMIN, STUDENT, LECTURER
+- Each role has a predefined set of permissions
 """
 
+# Define all available permissions grouped by functionality
 permissions = [
     # ================================================================
     # STUDENT PERMISSIONS
@@ -68,6 +74,7 @@ permissions = [
         "permissions": [
             "view_audit_logs",               # Admin can view system audit trail
             "view_user_activity",            # Admin can see who did what and when
+            "view_all_transcripts",
             "export_audit_reports",          # Admin can export audit data
             "view_system_statistics",        # Admin can see system usage statistics
         ],
@@ -99,3 +106,53 @@ permissions = [
         ],
     },
 ]
+
+
+# ================================================================
+# ROLE-PERMISSION MAPPINGS
+# ================================================================
+"""
+Define which permissions each role should have by default.
+This mapping is used during seed/migration to auto-assign permissions to roles.
+"""
+
+role_permission_mappings = {
+    "STUDENT": [
+        # Student Record Permissions
+        "view_own_records",
+        "submit_personal_information",
+        "verify_record_integrity",
+        "generate_credential_proof",
+        "view_record_history",
+        # Credential Verification (public)
+        "verify_credentials_public",
+        "check_record_authenticity",
+        "view_public_verification",
+    ],
+
+    "LECTURER": [
+        # Grade Management Permissions
+        "submit_grades",
+        "view_own_grade_submissions",
+        "verify_grade_integrity",
+        "view_grade_submission_history",
+        "view_course_students",
+        # Some verification permissions
+        "verify_credentials_public",
+        "check_record_authenticity",
+        "view_public_verification",
+    ],
+
+    "ADMIN": [
+        # Admin gets ALL permissions - will be assigned automatically in seed script
+        # This is handled in CreateUserAddSeedPermissions.py
+        # Admin has full access to:
+        # - All student record permissions
+        # - All lecturer/grade management permissions
+        # - All user management permissions
+        # - All record verification permissions
+        # - All system audit permissions
+        # - All course management permissions
+        # - All credential verification permissions
+    ]
+}

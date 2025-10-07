@@ -200,7 +200,13 @@ def get_paginated_and_non_paginated_data(
             else 40
         )
 
-        queryset = model.objects.filter(**filter_dictionary)
+        # Check if model is already a QuerySet or a Model class
+        if isinstance(model, QuerySet):
+            # It's already a queryset, apply additional filters
+            queryset = model.filter(**filter_dictionary)
+        else:
+            # It's a Model class, get queryset first
+            queryset = model.objects.filter(**filter_dictionary)
 
         if additional_filters is not None:
             queryset = queryset.filter(additional_filters)
@@ -209,8 +215,10 @@ def get_paginated_and_non_paginated_data(
             queryset = queryset.exclude(exclude_filtering_object)
 
         if search_term:  # Only apply search filter if search_term is not empty
+            # Get the actual model class from queryset if needed
+            actual_model = model.model if isinstance(model, QuerySet) else model
             queryset = apply_search_filter(
-                queryset, model, search_term
+                queryset, actual_model, search_term
             )  # Comment this line if you don't want global search functionality
 
         if start_date is not None or end_date is not None or time_range is not None:

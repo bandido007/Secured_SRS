@@ -118,3 +118,57 @@ class UserManagementService:
         except Exception as e:
             logger.error(f"Failed to create user: {e}")
             return None
+    def assign_role_to_user(self, user: User, role_name: str) -> bool:
+        """
+        Assign a specific role (by name) to a user.
+        Valid roles: ADMIN, STUDENT, LECTURER
+        """
+        try:
+            # Validate role name
+            valid_roles = [settings.DEFAULT_SUPER_ADMIN_ROLE_NAME,
+                          settings.STUDENT_ROLE_NAME,
+                          settings.LECTURER_ROLE_NAME]
+
+            if role_name not in valid_roles:
+                logger.error(f"Invalid role name: {role_name}. Valid roles: {valid_roles}")
+                return False
+
+            role = UserRoles.objects.filter(name=role_name).first()
+            if not role:
+                logger.error(f"Role not found in database: {role_name}")
+                return False
+
+            # Remove existing roles for this user (single role per user)
+            UsersWithRoles.objects.filter(user_with_role_user=user).delete()
+
+            # Assign new role
+            UsersWithRoles.objects.create(
+                user_with_role_user=user,
+                user_with_role_role=role
+            )
+
+            # Update profile account_type to match role
+            profile = UserProfile.objects.filter(profile_user=user).first()
+            if profile:
+                profile.account_type = role_name
+                profile.save()
+
+            logger.info(f"Assigned role '{role_name}' to user: {user.username}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to assign role '{role_name}' to user {user.username}: {e}")
+            return False
+
+    def get_user_role(self, user: User) -> str:
+        """
+        Get the role name for a user.
+        Returns the role name (ADMIN, STUDENT, LECTURER) or None if no role assigned.
+        """
+        try:
+            user_role = UsersWithRoles.objects.filter(user_with_role_user=user).first()
+            if user_role:
+                return user_role.user_with_role_role.name
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get role for user {user.username}: {e}")
+            return None

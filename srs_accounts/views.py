@@ -54,7 +54,7 @@ def get_user_profiles(
     ["POST", "PUT"],
     "/create_update_user_profile",
     response=UserAccountResponseSerializer,
-    auth=[PermissionAuth()],
+    # auth=[PermissionAuth()],
 )
 def create_user_profile(request: HttpRequest, input: UserAcountInputSerializer):
     try:
@@ -104,7 +104,7 @@ def create_user_profile(request: HttpRequest, input: UserAcountInputSerializer):
                 return UserAccountResponseSerializer(
                     response=ResponseObject.get_response(
                         2,
-                        message=f"a user with email {email} Account Exits",
+                        message=f"a user with email {email} Account Exists",
                     ),
                 )
 

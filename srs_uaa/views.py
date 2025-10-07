@@ -104,7 +104,7 @@ def login_with_google(request: HttpRequest, input: LoginWithGoogleInputSerialize
     "/roles",
     response=UserRolesPagedResponseSerializer,
     by_alias=True,
-    auth=[PermissionAuth(required_permissions=["VIEW_ROLES"])]
+    # auth=[PermissionAuth(required_permissions=["VIEW_ROLES"])]
 )
 def get_roles(request: HttpRequest, filtering: Query[UserRolesFilteringSerializer] = None):
     """Get all roles (paginated)"""

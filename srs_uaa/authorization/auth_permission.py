@@ -25,6 +25,8 @@ class PermissionAuth(HttpBearer):
         """Validate token and check permissions."""
         try:
             # Step 1: Who are you?
+            
+            token = request.headers.get('Authorization', '').replace('Bearer ', '')
             user_id = self.auth_service.validate_token(token)
             if not user_id:
                 return None

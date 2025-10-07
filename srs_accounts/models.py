@@ -11,15 +11,16 @@ from srs_uaa.models import UsersWithRoles
 
 
 class ProfileTypeChoices(models.TextChoices):
-    ADMIN = "ADMIN", "ADMIN"
-    NORMAL_USER = "NORMAL_USER", "NORMAL_USER"
+    ADMIN = "ADMIN", "Admin"
+    STUDENT = "STUDENT", "Student"
+    LECTURER = "LECTURER", "Lecturer"
 
 
 class UserProfile(BaseModel):
     account_type = models.CharField(
         choices=ProfileTypeChoices.choices,
         max_length=9000,
-        default=ProfileTypeChoices.NORMAL_USER,
+        default=ProfileTypeChoices.STUDENT,
     )
     photo = models.CharField(
         default="/profiles/user_profile.png", max_length=600, blank=True, null=True

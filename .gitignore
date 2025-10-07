@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+*/__pycache__/
+*.py[cod]
+
+
+
+db.sqlite3
+*sqlite3
+*.sqlite3
+
+
+.idea
+.vscode
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+/logs/*
+!/logs/.gitkeep
+
+# Environments
+.env
+.venv
+venv/
+SRS_DOMAIN_API_TESTING_GUIDE.md
+SRS_REAL_WORLD_API_TESTING_GUIDE.md
+SRS_SERVICE_ARCHITECTURE.md
+Secure_SRS_API_Tests.postman_collection.json
+SRS_Domain_API_Tests.postman_collection.json
+
