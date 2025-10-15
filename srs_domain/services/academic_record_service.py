@@ -185,14 +185,25 @@ class AcademicRecordService:
                 blockchain_hash = self.crypto.compute_hash(grade_data)
 
                 # Step 7: Store on blockchain
-                transaction_id = self.blockchain.store_transaction(
-                    record_hash=blockchain_hash,
-                    metadata={
-                        "grade_id": grade.id,
-                        "student": enrollment_obj.student.student_id,
-                        "course": enrollment_obj.course.course_code
+                # transaction_id = self.blockchain.store_transaction(
+                #     record_hash=blockchain_hash,
+                #     metadata={
+                #         "grade_id": grade.id,
+                #         "student": enrollment_obj.student.student_id,
+                #         "course": enrollment_obj.course.course_code
+                #     }
+                # )
+                                
+                # Upload to blockchain asynchronously
+                chaincode_response = self.blockchain.upload_results(
+                    courseId=enrollment_obj.course.course_code,
+                    results={
+                        "numeric_grade": str(numeric_grade),
+                        "letter_grade": str(letter_grade),
                     }
                 )
+                logger.info(f"Blockchain response: {chaincode_response}")
+
 
                 # Step 8: Store in distributed storage
                 content_id = self.storage.store_content(

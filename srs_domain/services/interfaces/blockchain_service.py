@@ -14,6 +14,23 @@ class BlockchainServiceInterface(ABC):
     or just a database - it only needs these capabilities.
     """
 
+    async def upload_results(self, courseId, results):
+        print(f" Uploading results for patient {courseId} ...")
+
+        response = await self.client.chaincode_invoke(
+            requestor=self.admin,
+            channel_name='mychannel',
+            peers=['peer0.org1.example.com'],
+            args=[courseId, results],
+            cc_name='basic',
+            fcn='uploadResults',
+            wait_for_event=True
+        )
+
+        print("Chaincode Response:", response)
+        return response
+
+
     @abstractmethod
     def store_transaction(
         self,
@@ -31,6 +48,7 @@ class BlockchainServiceInterface(ABC):
             Transaction ID that can be used to retrieve this transaction
         """
         pass
+    
 
     @abstractmethod
     def get_transaction(self, transaction_id: str) -> Optional[Dict[str, Any]]:
@@ -48,6 +66,11 @@ class BlockchainServiceInterface(ABC):
     @abstractmethod
     def verify_transaction_integrity(self, transaction_id: str) -> bool:
         """
+        get student grades from db
+        hash student grade
+        get_transaction from blockchain 
+        compare to verify
+        
         Verify that a transaction hasn't been tampered with.
 
         Args:

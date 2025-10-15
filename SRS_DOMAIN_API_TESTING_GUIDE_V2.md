@@ -486,7 +486,6 @@ Content-Type: application/json
 ### 1. Submit Grade
 
 **IMPORTANT**: You must be logged in as a user with a **Lecturer profile** to submit grades.
-
 ```http
 POST http://localhost:8000/api/domain/course-results
 Authorization: Bearer <lecturer_token>
@@ -501,7 +500,7 @@ Content-Type: application/json
   "examGrade": 45.5,
   "remarks": "Pass",
   "comments": "Excellent performance in the final exam"
-}
+},
 ```
 
 **Note**: The `submittedById` field is **NOT required** - the system automatically extracts the lecturer from your logged-in user account.
