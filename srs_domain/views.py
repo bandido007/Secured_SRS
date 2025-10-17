@@ -15,10 +15,12 @@ from srs_domain.services import AcademicRecordService
 from srs_uaa.authorization.auth_permission import PermissionAuth
 from srs_uaa.authentication.user_management import UserManagementService
 from srs_utils.response import ResponseObject, get_paginated_and_non_paginated_data
+from srs_domain.services.mocks.mock_blockchain import MockBlockchainService
 
 logger = logging.getLogger("srs_logger")
 
 domain_router = Router()
+blockchain = MockBlockchainService()
 
 
 # ================================================================
@@ -139,6 +141,7 @@ def create_student(request: HttpRequest, input: StudentInputSerializer):
     """
     try:
         with transaction.atomic():
+
             # Check if student_id already exists
             if Student.objects.filter(student_id=input.student_id).exists():
                 return BaseNonPagedResponseData(
@@ -176,6 +179,13 @@ def create_student(request: HttpRequest, input: StudentInputSerializer):
                 date_of_birth=input.date_of_birth,
                 created_by=request.user
             )
+
+            # Create studentId on blockchain
+            studentBackup = blockchain.create_student({
+                "studentId": input.student_id,
+                "program": input.program
+            })
+            print(studentBackup)
 
             logger.info(f"Student created: {student.student_id} by {request.user.username}")
 
@@ -333,6 +343,15 @@ def create_lecturer(request: HttpRequest, input: LecturerInputSerializer):
                 created_by=request.user
             )
 
+            # Create lecturerId on blockchain
+            lecturerBackup = blockchain.create_lecturer({
+                "lecturerId": input.lecturer_id,
+                "department": input.department,
+                "specialization": input.specialization,
+            })
+
+            print(lecturerBackup)
+
             logger.info(f"Lecturer created: {lecturer.lecturer_id} by {request.user.username}")
 
             return BaseNonPagedResponseData(
@@ -464,6 +483,17 @@ def create_course(request: HttpRequest, input: CourseInputSerializer):
             description=input.description,
             created_by=request.user
         )
+
+        # Create lecturerId on blockchain
+        courseBackup = blockchain.add_course({
+            "course_code": input.course_code,
+            "course_name": input.course_name,
+            "credits": input.credits,
+            "department": input.department,
+            "assigned_lecturer_id": input.assigned_lecturer_id,
+        })
+
+        print(courseBackup)
 
         logger.info(f"Course created: {course.course_code} by {request.user.username}")
 
@@ -723,7 +753,7 @@ def get_course_results(
 @domain_router.post(
     "/course-results",
     response=BaseNonPagedResponseData,
-    # auth=[PermissionAuth(required_permissions=["submit_grades"])]
+    auth=[PermissionAuth(required_permissions=["submit_grades"])]
 )
 def submit_course_result(request: HttpRequest, input: CourseResultsInputSerializer):
     """

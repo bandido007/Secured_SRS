@@ -65,8 +65,8 @@ class StudentResultsContract extends Contract {
      *   { "studentId": "ST002", "name": "Bob", "score": 72, "grade": "B" }
      * ]
      */
-    async uploadResults(ctx, courseId, resultsJson) {
-        const courseBytes = await ctx.stub.getState(courseId);
+    uploadResults(ctx, courseId, resultsJson) {
+        const courseBytes = ctx.stub.getState(courseId);
         if (!courseBytes || courseBytes.length === 0) {
             throw new Error(`Course ${courseId} not found`);
         }
@@ -80,10 +80,10 @@ class StudentResultsContract extends Contract {
         }
 
         course.results = results;
-        await ctx.stub.putState(courseId, Buffer.from(stringify(course)));
+        ctx.stub.putState(courseId, Buffer.from(stringify(course)));
 
         // Update the global list of courses
-        let allCourses = await ctx.stub.getState('Courses');
+        let allCourses = ctx.stub.getState('Courses');
         allCourses = allCourses.length ? JSON.parse(allCourses.toString()) : [];
         const index = allCourses.findIndex(c => c.courseId === courseId);
         if (index !== -1) {
@@ -91,7 +91,7 @@ class StudentResultsContract extends Contract {
         } else {
             allCourses.push(course);
         }
-        await ctx.stub.putState('Courses', Buffer.from(stringify(allCourses)));
+        ctx.stub.putState('Courses', Buffer.from(stringify(allCourses)));
 
         return stringify({ status: 200, message: `Results uploaded for ${course.courseName}` });
     }

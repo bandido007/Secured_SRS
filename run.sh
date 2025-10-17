@@ -23,6 +23,7 @@ echo "##########################################"
 echo ""
 
 ./network.sh createChannel
+./monitordocker.sh fabric_test
 
 echo ""
 echo "##########################################"
