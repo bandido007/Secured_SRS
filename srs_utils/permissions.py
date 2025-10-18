@@ -56,6 +56,10 @@ permissions = [
             "manage_permissions",            # Admin can manage permission assignments
             "deactivate_users",              # Admin can deactivate user accounts
             "view_all_users",                # Admin can see list of all users
+            "view_all_students",             # Admin can see all student records
+            "manage_student_records",        # Admin can create/update student profiles
+            "view_lecturer_information",     # Admin can view lecturer details
+            "manage_lecturer_accounts",      # Admin can manage lecturer profiles
         ],
     },
 
@@ -66,6 +70,9 @@ permissions = [
             "view_all_records",              # Admin can view all academic records
             "view_blockchain_hashes",        # Admin can see cryptographic proofs
             "view_ipfs_references",          # Admin can see distributed storage references
+            "view_all_grade_submissions",    # Admin can view grades submitted by anyone
+            "view_grade_submissions",        # Admin can list all grade submissions
+            "generate_transcripts",          # Admin can generate official transcripts
         ],
     },
 
@@ -77,6 +84,7 @@ permissions = [
             "view_all_transcripts",
             "export_audit_reports",          # Admin can export audit data
             "view_system_statistics",        # Admin can see system usage statistics
+            "view_audit_trail",              # Admin can view grade-level audit trails
         ],
     },
 
@@ -91,6 +99,10 @@ permissions = [
             "enroll_students_in_courses",    # Admin can enroll students in courses
             "view_all_courses",              # Admin can view all courses
             "manage_course_details",         # Admin can edit course information
+            "view_course_catalog",           # Admin can view the published course catalog
+            "manage_course_catalog",         # Admin can manage catalog entries
+            "view_enrollment_records",       # Admin can view all enrollment records
+            "manage_enrollment",             # Admin can manage enrollments
         ],
     },
 
@@ -128,6 +140,8 @@ role_permission_mappings = {
         "verify_credentials_public",
         "check_record_authenticity",
         "view_public_verification",
+        # Catalog visibility
+        "view_course_catalog",
     ],
 
     "LECTURER": [
@@ -141,6 +155,9 @@ role_permission_mappings = {
         "verify_credentials_public",
         "check_record_authenticity",
         "view_public_verification",
+        # Course and enrollment visibility
+        "view_course_catalog",
+        "view_enrollment_records",
     ],
 
     "ADMIN": [

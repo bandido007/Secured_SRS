@@ -1,9 +1,12 @@
 import re
+import logging
+from typing import Any
 from ninja import Router
 from django.http import HttpRequest
+from django.db import transaction
 from django.db.models import Q, Count, Sum, F
 from django.conf import settings
-import logging
+from django.contrib.auth.models import User
 
 from dotenv import dotenv_values
 
@@ -19,6 +22,7 @@ from srs_utils.response import (
     ResponseObject,
     get_paginated_and_non_paginated_data,
 )
+from srs_domain.models import Student, Lecturer
 
 from ninja import Query
 
@@ -27,6 +31,136 @@ config = dotenv_values(".env")
 logger = logging.getLogger("srs_logger")
 
 accounts_router = Router()
+
+
+@accounts_router.post(
+    "/admin/provision_user",
+    response=ProvisionedUserResponseSerializer,
+    auth=[PermissionAuth()]
+)
+def provision_user_with_role(request: HttpRequest, input: AdminProvisionUserInput):
+    """Allow administrators to provision a user and optional domain profile in one step."""
+    try:
+        with transaction.atomic():
+            creator = request.user if getattr(request.user, "is_authenticated", False) else None
+            username = input.username.strip()
+            email = input.email.strip().lower()
+            role = input.role.upper()
+
+            if User.objects.filter(username=username).exists():
+                return ProvisionedUserResponseSerializer(
+                    response=ResponseObject.get_response(0, f"Username '{username}' already exists")
+                )
+
+            if User.objects.filter(email=email).exists():
+                return ProvisionedUserResponseSerializer(
+                    response=ResponseObject.get_response(0, f"Email '{email}' already exists")
+                )
+
+            user_mgmt = UserManagementService()
+            user = user_mgmt.create_user(
+                username=username,
+                email=email,
+                password=input.password,
+                first_name=(input.first_name or "").strip(),
+                last_name=(input.last_name or "").strip(),
+            )
+
+            if not user:
+                return ProvisionedUserResponseSerializer(
+                    response=ResponseObject.get_response(0, "Failed to create user account")
+                )
+
+            profile = UserProfile.objects.filter(profile_user=user).first()
+            if profile:
+                profile.has_been_verified = True
+                profile.save()
+
+            if not user_mgmt.assign_role_to_user(user, role):
+                return ProvisionedUserResponseSerializer(
+                    response=ResponseObject.get_response(0, f"Failed to assign role '{role}' to user")
+                )
+
+            response_payload: dict[str, Any] = {
+                "userId": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": role,
+            }
+
+            if role == "STUDENT":
+                if not input.student_profile:
+                    return ProvisionedUserResponseSerializer(
+                        response=ResponseObject.get_response(0, "Student profile details are required for STUDENT role")
+                    )
+
+                student_data = input.student_profile.model_dump()
+
+                if Student.objects.filter(student_id=student_data["student_id"]).exists():
+                    return ProvisionedUserResponseSerializer(
+                        response=ResponseObject.get_response(0, "Student ID already exists")
+                    )
+
+                student = Student.objects.create(
+                    user=user,
+                    student_id=student_data["student_id"],
+                    enrollment_date=student_data["enrollment_date"],
+                    program=student_data["program"],
+                    year_of_study=student_data["year_of_study"],
+                    enrollment_status=student_data.get("enrollment_status", "ACTIVE"),
+                    phone_number=student_data.get("phone_number"),
+                    date_of_birth=student_data.get("date_of_birth"),
+                    created_by=creator,
+                )
+
+                response_payload.update(
+                    {
+                        "studentProfileId": student.id,
+                        "studentNumber": student.student_id,
+                    }
+                )
+
+            if role == "LECTURER":
+                if not input.lecturer_profile:
+                    return ProvisionedUserResponseSerializer(
+                        response=ResponseObject.get_response(0, "Lecturer profile details are required for LECTURER role")
+                    )
+
+                lecturer_data = input.lecturer_profile.model_dump()
+
+                if Lecturer.objects.filter(lecturer_id=lecturer_data["lecturer_id"]).exists():
+                    return ProvisionedUserResponseSerializer(
+                        response=ResponseObject.get_response(0, "Lecturer ID already exists")
+                    )
+
+                lecturer = Lecturer.objects.create(
+                    user=user,
+                    lecturer_id=lecturer_data["lecturer_id"],
+                    department=lecturer_data["department"],
+                    specialization=lecturer_data.get("specialization") or "",
+                    created_by=creator,
+                )
+
+                response_payload.update(
+                    {
+                        "lecturerProfileId": lecturer.id,
+                        "lecturerCode": lecturer.lecturer_id,
+                    }
+                )
+
+            actor = getattr(request.user, "username", "anonymous")
+            logger.info("Provisioned user %s with role %s by %s", user.username, role, actor)
+
+            return ProvisionedUserResponseSerializer(
+                response=ResponseObject.get_response(1, "User provisioned successfully"),
+                data=response_payload,
+            )
+
+    except Exception as e:
+        logger.error(f"Error provisioning user: {e}")
+        return ProvisionedUserResponseSerializer(
+            response=ResponseObject.get_response(2, message=str(e))
+        )
 
 
 @accounts_router.get(
@@ -54,7 +188,7 @@ def get_user_profiles(
     ["POST", "PUT"],
     "/create_update_user_profile",
     response=UserAccountResponseSerializer,
-    # auth=[PermissionAuth()],
+    auth=[PermissionAuth()],
 )
 def create_user_profile(request: HttpRequest, input: UserAcountInputSerializer):
     try:
@@ -159,8 +293,6 @@ def create_user_profile(request: HttpRequest, input: UserAcountInputSerializer):
         return UserAccountResponseSerializer(
             response=ResponseObject.get_response(2, message=str(e)),
         )
-
-
 @accounts_router.post(
     "/update_my_profile",
     response=UserAccountResponseSerializer,

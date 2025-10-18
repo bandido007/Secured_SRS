@@ -44,7 +44,14 @@ class AuthorizationService:
     def has_all_permissions(self, user_id: int, permission_codes: List[str]) -> bool:
         """Check if user has ALL listed permissions."""
         for permission_code in permission_codes:
-            if  self.has_permission(user_id, permission_code):
+            if not self.has_permission(user_id, permission_code):
+                return False
+        return True
+
+    def has_any_permission(self, user_id: int, permission_codes: List[str]) -> bool:
+        """Check if user has ANY of the listed permissions (OR logic)."""
+        for permission_code in permission_codes:
+            if self.has_permission(user_id, permission_code):
                 return True
         return False
 

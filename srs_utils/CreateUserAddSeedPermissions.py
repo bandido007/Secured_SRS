@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.models import Count
 
 from srs_accounts.models import UserProfile
 from srs_uaa.models import *
@@ -23,6 +24,25 @@ all_default_roles_added = [
     STUDENT_ROLE_NAME,               # STUDENT
     LECTURER_ROLE_NAME,              # LECTURER
 ]
+
+
+def _ensure_single_role_assignment(user, role):
+    """Make sure the user has exactly one link for the given role."""
+    existing_links = UsersWithRoles.objects.filter(
+        user_with_role_user=user,
+        user_with_role_role=role
+    ).order_by("primary_key")
+
+    if existing_links.exists():
+        primary_link = existing_links.first()
+        # Remove duplicates while keeping the earliest link intact
+        existing_links.exclude(pk=primary_link.pk).delete()
+        return primary_link
+
+    return UsersWithRoles.objects.create(
+        user_with_role_user=user,
+        user_with_role_role=role
+    )
 
 
 class CreateRolesAddPermissions:
@@ -78,6 +98,9 @@ class CreateRolesAddPermissions:
 
     def seed_permissions(self):
 
+        # Ensure existing role assignments do not contain duplicates
+        self._deduplicate_user_role_links()
+
         # CREATE ALL ROLES
         self.create_default_roles()
 
@@ -120,6 +143,26 @@ class CreateRolesAddPermissions:
                 role_with_permission_role=admin_role,
                 role_with_permission_permission=permission,
             )
+
+    def _deduplicate_user_role_links(self):
+        """Remove duplicate user-role links before seeding."""
+        duplicates = (
+            UsersWithRoles.objects.values(
+                "user_with_role_user_id",
+                "user_with_role_role_id"
+            )
+            .annotate(total=Count("primary_key"))
+            .filter(total__gt=1)
+        )
+
+        for duplicate in duplicates:
+            links = UsersWithRoles.objects.filter(
+                user_with_role_user_id=duplicate["user_with_role_user_id"],
+                user_with_role_role_id=duplicate["user_with_role_role_id"],
+            ).order_by("primary_key")
+
+            primary_link = links.first()
+            links.exclude(pk=primary_link.pk).delete()
 
     def assign_role_permissions(self):
         """
@@ -183,9 +226,6 @@ class CreateRolesAddPermissions:
                 user.set_password(settings.DEFAULT_SUPER_PASS)
                 user.save()
 
-                UsersWithRoles.objects.update_or_create(
-                    user_with_role_role=created_role,
-                    user_with_role_user=user,
-                )
+                _ensure_single_role_assignment(user=user, role=created_role)
 
         logger.info("Finished seeding All Roles")

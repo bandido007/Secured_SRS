@@ -1,8 +1,8 @@
-from typing import List
+from typing import Any, List, Literal, Optional
 from srs_uaa.serializers import UserRolesSerializer
 from srs_utils.SharedSerializer import *
-from typing import List, Optional, Any
-from pydantic import BaseModel ,EmailStr
+from datetime import date
+from pydantic import BaseModel
 
 
 class UserAcountInputSerializer(BaseInputSerializer):
@@ -65,6 +65,37 @@ class ChangePasswordSerializer(BaseSchema):
     old_password: str
     new_password: str
     confirm_new_password: str
+
+
+class AdminProvisionStudentInput(BaseSchema):
+    student_id: str
+    program: str
+    year_of_study: int
+    enrollment_date: date
+    enrollment_status: str = "ACTIVE"
+    phone_number: Optional[str] = None
+    date_of_birth: Optional[date] = None
+
+
+class AdminProvisionLecturerInput(BaseSchema):
+    lecturer_id: str
+    department: str
+    specialization: Optional[str] = None
+
+
+class AdminProvisionUserInput(BaseSchema):
+    username: str
+    email: str
+    password: str
+    role: Literal["ADMIN", "STUDENT", "LECTURER"]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    student_profile: Optional[AdminProvisionStudentInput] = None
+    lecturer_profile: Optional[AdminProvisionLecturerInput] = None
+
+
+class ProvisionedUserResponseSerializer(BaseNonPagedResponseData):
+    data: Optional[Any] = None
 
 
 class TokenStatus(BaseModel):

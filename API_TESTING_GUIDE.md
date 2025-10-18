@@ -29,6 +29,9 @@ python manage.py runserver 0.0.0.0:8000
 ```
 
 ### **2. Access API Documentation**
+## creating superuser
+python manage.py createsuperuser
+
 - **Scalar API Docs**: http://localhost:8000/api/docs
 - **Admin Panel**: http://localhost:8000/admin (admin/admin123)
 

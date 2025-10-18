@@ -149,11 +149,16 @@ class AcademicRecordService:
                         success=False,
                         message="Numeric grade is required for NUMERIC grade type"
                     )
+                    
+                    
                 if grade_type == 'LETTER' and not letter_grade:
                     return GradeSubmissionResult(
                         success=False,
                         message="Letter grade is required for LETTER grade type"
                     )
+                    
+                    
+                    
 
                 # Step 5: Create grade record
                 grade = CourseResults.objects.create(
@@ -163,8 +168,8 @@ class AcademicRecordService:
                     letter_grade=letter_grade,
                     course_work_grade=course_work_grade,
                     exam_grade=exam_grade,
-                    remarks=remarks,
-                    comments=comments,
+                    remarks=remarks or "",
+                    comments=comments or "",
                     submitted_by=lecturer,
                     status='PENDING',
                     created_by=submitted_by_user

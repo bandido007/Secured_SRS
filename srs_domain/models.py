@@ -303,6 +303,7 @@ class CourseResults(BaseModel):
     )
     remarks = models.TextField(
         blank=True,
+        null=True,
         help_text="Remarks (Pass, Fail, Carry Over, etc.)"
     )
     status = models.CharField(
@@ -326,6 +327,7 @@ class CourseResults(BaseModel):
     )
     comments = models.TextField(
         blank=True,
+        null=True,
         help_text="Optional comments from lecturer"
     )
 

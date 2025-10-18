@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
     'srs_uaa',
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -156,9 +158,9 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
-    "TOKEN_OBTAIN_SERIALIZER": "sentiment_utils.custom_authentication.CustomTokenObtainPairSerializer",
-    "TOKEN_REFRESH_SERIALIZER": "sentiment_utils.custom_authentication.CustomRefreshTokenSerializer",
-    "TOKEN_VERIFY_SERIALIZER": "sentiment_utils.custom_authentication.CustomVerifyTokenSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "srs_utils.custom_authentication.CustomTokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "srs_utils.custom_authentication.CustomRefreshTokenSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "srs_utils.custom_authentication.CustomVerifyTokenSerializer",
 }
 
 
@@ -238,3 +240,32 @@ LOGGING = {
 LOGS_DIR = BASE_DIR / 'logs'
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

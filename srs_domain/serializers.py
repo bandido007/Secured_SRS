@@ -226,6 +226,7 @@ class EnrollmentTableSerializer(BaseSerializer):
     @classmethod
     def extract_fields(cls, data):
         if hasattr(data, 'student'):
+            lecturer_obj = getattr(data, 'lecturer', None) or getattr(data.course, 'assigned_lecturer', None)
             return {
                 'id': data.pk,
                 'unique_id': data.unique_id,
@@ -240,8 +241,8 @@ class EnrollmentTableSerializer(BaseSerializer):
                 'course_name': data.course.course_name,
                 'semester': data.semester,
                 'academic_year': data.academic_year,
-                'lecturer_id': data.lecturer_id,
-                'lecturer_name': data.lecturer.user.username if data.lecturer else None
+                'lecturer_id': data.lecturer_id or (lecturer_obj.id if lecturer_obj else None),
+                'lecturer_name': lecturer_obj.user.username if lecturer_obj else None
             }
         return data
 
