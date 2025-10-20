@@ -1,63 +1,73 @@
-# srs_domain/services/mocks/mock_blockchain.py
-
-from typing import Dict, Any, Optional
-from django.utils import timezone
-from ..interfaces.blockchain_service import BlockchainServiceInterface
+import requests
+from typing import Dict, Any, List
+from srs_domain.services.interfaces.blockchain_service import BlockchainServiceInterface
 
 
 class MockBlockchainService(BlockchainServiceInterface):
     """
-    Mock implementation that simulates blockchain storage.
-
-    Stores transactions in memory (for testing) or uses RecordTransaction model.
-    When you need real blockchain, create RealBlockchainService
-    that talks to Hyperledger, Ethereum, etc.
+    Implementation of BlockchainServiceInterface that talks to the Node.js Fabric backend.
     """
 
-    def __init__(self):
-        # In-memory storage for testing (won't persist across restarts)
-        self._transactions = {}
+    def __init__(self, base_url: str = "http://localhost:3000"):
+        self.base_url = base_url
 
-    def store_transaction(
-        self,
-        record_hash: str,
-        metadata: Dict[str, Any]
-    ) -> str:
-        """
-        Store a transaction (simulated).
+    def _post(self, endpoint: str, data: Dict[str, Any]) -> Any:
+        url = f"{self.base_url}{endpoint}"
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        return response.json()
 
-        In production, this would call actual blockchain APIs.
-        """
-        # Generate a transaction ID
-        timestamp = timezone.now().timestamp()
-        transaction_id = f"TX-{timestamp}-{record_hash[:8]}"
+    def _get(self, endpoint: str) -> Any:
+        url = f"{self.base_url}{endpoint}"
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
 
-        # Store in memory
-        self._transactions[transaction_id] = {
-            'hash': record_hash,
-            'metadata': metadata,
-            'timestamp': str(timezone.now()),
-            'verified': True
-        }
+    # -----------------------
+    # Student APIs
+    # -----------------------
+    def create_student(self, student_data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._post("/createStudent", student_data)
 
-        return transaction_id
+    def get_student(self, student_id: str) -> Dict[str, Any]:
+        return self._get(f"/getStudent/{student_id}")
 
-    def get_transaction(self, transaction_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a transaction.
-        """
-        return self._transactions.get(transaction_id)
+    def list_students(self) -> List[Dict[str, Any]]:
+        return self._get("/listStudents")
 
-    def verify_transaction_integrity(self, transaction_id: str) -> bool:
-        """
-        Verify transaction integrity (simulated).
+    # -----------------------
+    # Lecturer APIs
+    # -----------------------
+    def create_lecturer(self, lecturer_data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._post("/createLecturer", lecturer_data)
 
-        In production, this would verify blockchain signatures/proofs.
-        """
-        transaction = self._transactions.get(transaction_id)
-        if not transaction:
-            return False
+    def list_lecturers(self) -> List[Dict[str, Any]]:
+        return self._get("/listLecturers")
 
-        # In mock, we just check it exists
-        # Real implementation would verify cryptographic proofs
-        return transaction.get('verified', False)
+    # -----------------------
+    # Course APIs
+    # -----------------------
+    def add_course(self, course_data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._post("/addCourse", course_data)
+
+    def list_courses(self) -> List[Dict[str, Any]]:
+        return self._get("/listCourses")
+
+    def upload_results(self, course_id: str, results: Dict[str, Any]) -> Dict[str, Any]:
+        data = {"courseId": course_id, "results": results}
+        return self._post("/submitGrade", data)
+
+    # -----------------------
+    # Enrollment APIs
+    # -----------------------
+    def enroll_student(self, enrollment_data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._post("/enrollStudent", enrollment_data)
+
+    # -----------------------
+    # Transcript APIs
+    # -----------------------
+    def generate_transcript(self, transcript_data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._post("/generateTranscript", transcript_data)
+
+    def list_transcripts(self, student_id: str) -> List[Dict[str, Any]]:
+        return self._get(f"/listTranscripts/{student_id}")
