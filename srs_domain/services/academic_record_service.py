@@ -188,16 +188,35 @@ class AcademicRecordService:
                     "submitted_at": str(grade.submitted_at)
                 }
                 blockchain_hash = self.crypto.compute_hash(grade_data)
+                
+                logger.info(f"Blockchain response: {grade.grade_type}")
+
+                def convert_decimal(value):
+                    """Convert Decimal to float, return 0 if None"""
+                    if value is None:
+                        return 0
+                    from decimal import Decimal
+                    if isinstance(value, Decimal):
+                        return float(value)
+                    return value
 
                 # Step 7: Store on blockchain
-                transaction_id = self.blockchain.store_transaction(
-                    record_hash=blockchain_hash,
-                    metadata={
-                        "grade_id": grade.id,
-                        "student": enrollment_obj.student.student_id,
-                        "course": enrollment_obj.course.course_code
+                # Upload to blockchain asynchronously
+                chaincode_response = self.blockchain.upload_results(
+                    results={
+                        "resultId": grade.id,
+                        "enrollmentId": grade.enrollment.id,
+                        "gradeType": grade.grade_type,
+                        "numericGrade": convert_decimal(grade.numeric_grade),
+                        "letterGrade": grade.letter_grade or "",
+                        "courseWorkGrade": convert_decimal(grade.course_work_grade),
+                        "examGrade": convert_decimal(grade.exam_grade),
+                        "remarks": grade.remarks,
+                        "comments": grade.comments,
+                        "submittedAt": str(grade.submitted_at)
                     }
                 )
+                logger.info(f"Blockchain response: {chaincode_response}")
 
                 # Step 8: Store in distributed storage
                 content_id = self.storage.store_content(
@@ -207,7 +226,7 @@ class AcademicRecordService:
 
                 # Step 9: Update grade with blockchain references
                 grade.blockchain_hash = blockchain_hash
-                grade.blockchain_transaction_id = transaction_id
+                # grade.blockchain_transaction_id = transaction_id
                 grade.ipfs_cid = content_id
                 grade.save()
 
@@ -216,7 +235,7 @@ class AcademicRecordService:
                     grade=grade,
                     transaction_type='CREATE',
                     performed_by=submitted_by_user,
-                    transaction_id=transaction_id,
+                    # transaction_id=transaction_id,
                     transaction_hash=blockchain_hash,
                     created_by=submitted_by_user
                 )
@@ -296,6 +315,19 @@ class AcademicRecordService:
                 "grade": str(grade.numeric_grade or grade.letter_grade),
                 "submitted_at": str(grade.submitted_at)
             }
+
+            blockchain_grade = self.blockchain.upload_results()
+
+            blockchain_grade_data = {
+                "student_id": grade.enrollment.student.student_id,
+                "course_code": grade.enrollment.course.course_code,
+                "semester": grade.enrollment.semester,
+                "academic_year": grade.enrollment.academic_year,
+                "grade": str(grade.numeric_grade or grade.letter_grade),
+                "submitted_at": str(grade.submitted_at)
+            }
+
+            blockchain_hash = self.crypto.compute_hash(blockchain_grade_data)
 
             # Step 4: Verify hash using crypto service
             is_valid = self.crypto.verify_hash(grade_data, grade.blockchain_hash)

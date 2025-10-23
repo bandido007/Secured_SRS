@@ -10,17 +10,21 @@ from django.contrib.auth.models import User
 
 import logging
 
+from rsa import compute_hash
+
 from srs_domain.models import *
 from srs_domain.serializers import *
 from srs_domain.services import AcademicRecordService
 from srs_uaa.authorization.auth_permission import PermissionAuth
 from srs_uaa.authentication.user_management import UserManagementService
 from srs_utils.response import ResponseObject, get_paginated_and_non_paginated_data
+from srs_domain.services.mocks.mock_blockchain import MockBlockchainService
+from srs_domain.services.mocks.mock_crypto import MockCryptographyService
 
 logger = logging.getLogger("srs_logger")
 
 domain_router = Router()
-
+blockchain = MockBlockchainService()
 
 def _get_request_user_or_none(request: HttpRequest):
     user = getattr(request, "user", None)
@@ -241,6 +245,14 @@ def create_student(request: HttpRequest, input: StudentInputSerializer):
             )
 
             actor = creator.username if creator else "anonymous"
+
+            # Create studentId on blockchain
+            studentBackup = blockchain.create_student({
+                "studentId": input.student_id,
+                "program": input.program
+            })
+            print(studentBackup)
+
             logger.info(f"Student created: {student.student_id} by {actor}")
 
             return BaseNonPagedResponseData(
@@ -449,6 +461,17 @@ def create_lecturer(request: HttpRequest, input: LecturerInputSerializer):
             )
 
             actor = creator.username if creator else "anonymous"
+
+
+            # Create lecturerId on blockchain
+            lecturerBackup = blockchain.create_lecturer({
+                "lecturerId": input.lecturer_id,
+                "department": input.department,
+                "specialization": input.specialization,
+            })
+
+            print(lecturerBackup)
+
             logger.info(f"Lecturer created: {lecturer.lecturer_id} by {actor}")
 
             return BaseNonPagedResponseData(
@@ -585,6 +608,18 @@ def create_course(request: HttpRequest, input: CourseInputSerializer):
         )
 
         actor = creator.username if creator else "anonymous"
+
+        # Create lecturerId on blockchain
+        courseBackup = blockchain.add_course({
+            "course_code": input.course_code,
+            "course_name": input.course_name,
+            "credits": input.credits,
+            "department": input.department,
+            "assigned_lecturer_id": input.assigned_lecturer_id,
+        })
+
+        print(courseBackup)
+        
         logger.info(f"Course created: {course.course_code} by {actor}")
 
         return BaseNonPagedResponseData(
@@ -821,6 +856,12 @@ def deactivate_enrollment(request: HttpRequest, enrollment_id: int):
 # COURSE RESULTS (GRADES) ENDPOINTS - THE CORE BUSINESS LOGIC
 # ================================================================
 
+import logging
+import json
+import hashlib
+
+logger = logging.getLogger(__name__)
+
 @domain_router.get(
     "/course-results",
     response=CourseResultsPagedResponseSerializer,
@@ -833,15 +874,12 @@ def get_course_results(
 ):
     """
     Retrieve course results/grades (paginated).
-
-    Lecturers can view their own grade submissions.
-    Admins can view all grade submissions.
+    Also compares regenerated hash with blockchainHash to show verification status.
     """
     try:
         from srs_uaa.authorization.services import AuthorizationService
         authz_service = AuthorizationService()
 
-        # Check if user has admin permission to view all
         can_view_all = authz_service.has_permission(request.user.id, "view_grade_submissions")
 
         queryset = CourseResults.objects.select_related(
@@ -850,16 +888,15 @@ def get_course_results(
             'submitted_by'
         ).all()
 
-        # If not admin, filter to only user's own submissions
+        # If not admin, show only own submissions
         if not can_view_all:
-            # Get the lecturer instance for this user
             lecturer = Lecturer.objects.filter(user=request.user, is_active=True).first()
             if lecturer:
                 queryset = queryset.filter(submitted_by=lecturer)
             else:
-                # User is not a lecturer, return empty queryset
                 queryset = queryset.none()
 
+        # Apply filtering
         if filtering:
             if filtering.enrollment_id:
                 queryset = queryset.filter(enrollment_id=filtering.enrollment_id)
@@ -874,30 +911,59 @@ def get_course_results(
             if filtering.status:
                 queryset = queryset.filter(status=filtering.status)
             if filtering.submitted_by_id:
-                # submitted_by_id could be either User ID or Lecturer ID
-                # Try to find the lecturer by user_id first
                 lecturer = Lecturer.objects.filter(user_id=filtering.submitted_by_id, is_active=True).first()
                 if lecturer:
                     queryset = queryset.filter(submitted_by=lecturer)
                 else:
-                    # Maybe it's a lecturer ID directly
                     queryset = queryset.filter(submitted_by_id=filtering.submitted_by_id)
             if filtering.is_verified is not None:
                 queryset = queryset.filter(is_verified=filtering.is_verified)
             if filtering.grade_type:
                 queryset = queryset.filter(grade_type=filtering.grade_type)
 
-        return get_paginated_and_non_paginated_data(
+        # Use pagination helper
+        paginated_response = get_paginated_and_non_paginated_data(
             queryset,
             filtering,
             CourseResultsPagedResponseSerializer
         )
+
+        # Safely mutate serialized data (dicts)
+        if hasattr(paginated_response, "data") and paginated_response.data:
+            new_data = []
+            for serialized in paginated_response.data:
+                # Ensure dict form
+                record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
+
+                # Prepare data for hashing
+                data_for_hash = {
+                    "studentNumber": record.get("studentNumber"),
+                    "courseCode": record.get("courseCode"),
+                    "academicYear": record.get("academicYear"),
+                    "semester": record.get("semester"),
+                    "gradeType": record.get("gradeType"),
+                    "courseWorkGrade": str(record.get("courseWorkGrade") or ""),
+                    "examGrade": str(record.get("examGrade") or ""),
+                    "remarks": record.get("remarks") or ""
+                }
+
+                crypto = MockCryptographyService()
+                regenerated_hash = crypto.compute_hash(data_for_hash)
+                
+                record["status"] = (
+                    "VALID" if regenerated_hash == record.get("blockchainHash") else "INVALID"
+                )
+                new_data.append(record)
+
+            paginated_response.data = new_data
+
+        return paginated_response
+
     except Exception as e:
         logger.error(f"Error fetching course results: {e}")
         return CourseResultsPagedResponseSerializer(
             response=ResponseObject.get_response(2, message=str(e))
         )
-
 
 @domain_router.post(
     "/course-results",

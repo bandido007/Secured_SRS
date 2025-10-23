@@ -8,7 +8,7 @@ class MockBlockchainService(BlockchainServiceInterface):
     Implementation of BlockchainServiceInterface that talks to the Node.js Fabric backend.
     """
 
-    def __init__(self, base_url: str = "http://localhost:3000"):
+    def __init__(self, base_url: str = "http://127.0.0.1:3000"):
         self.base_url = base_url
 
     def _post(self, endpoint: str, data: Dict[str, Any]) -> Any:
@@ -53,9 +53,9 @@ class MockBlockchainService(BlockchainServiceInterface):
     def list_courses(self) -> List[Dict[str, Any]]:
         return self._get("/listCourses")
 
-    def upload_results(self, course_id: str, results: Dict[str, Any]) -> Dict[str, Any]:
-        data = {"courseId": course_id, "results": results}
-        return self._post("/submitGrade", data)
+    def upload_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        # data = {"courseId": course_id, "results": results}
+        return self._post("/submitGrade", results)
 
     # -----------------------
     # Enrollment APIs

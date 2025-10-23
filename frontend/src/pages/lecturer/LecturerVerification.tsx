@@ -12,6 +12,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
 import { getErrorMessage } from '../../utils/error';
 import { formatDateTime } from '../../utils/format';
+import { Modal } from '../../components/ui/Modal';
 
 const QUERY_KEY = 'lecturer-verification-grades';
 
@@ -20,6 +21,47 @@ export function LecturerVerification() {
   const [filters, setFilters] = useState<CourseResultFilters>({ pageNumber: 1, itemsPerPage: 10 });
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const { lecturer, query: lecturerQuery } = useCurrentLecturer();
+
+  const sampleResult = {
+    id: 2,
+    studentName: "Brian Mwangi",
+    studentNumber: "S20230099",
+    courseName: "Blockchain Fundamentals",
+    courseCode: "BC210",
+    status: "PENDING",
+    blockchainHash: "0x77d9b8ac9f0e3dfb08ffacdd112ccaa4433a98d9b2d0a0cf35a5c77f5af41200",
+    submittedAt: "2025-10-19T10:00:00Z",
+    verifiedAt: null,
+    isVerified: false,
+    blockchainData: {
+      studentName: "Brian Mwangi",
+      studentNumber: "S20230099",
+      course: "Blockchain Fundamentals (BC210)",
+      status: "OFFICIAL",
+      hash: "0x77d9b8ac9f0e3dfb08ffacdd112ccaa4433a98d9b2d0a0cf35a5c77f5af412FF",
+      submittedAt: "2025-10-19T09:58:00Z",
+      verifiedAt: null,
+    },
+  };
+
+  const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = (result: CourseResult) => {
+    setSelectedResult(result);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedResult(null);
+    setIsModalOpen(false);
+  };
+
+  const handleVerifyConfirm = () => {
+    if (!selectedResult) return;
+    verifyMutation.mutate(selectedResult.id);
+    closeModal();
+  };
 
   useEffect(() => {
     if (!feedback) {
@@ -112,11 +154,10 @@ export function LecturerVerification() {
 
       {feedback ? (
         <div
-          className={`rounded-md border px-4 py-3 text-sm ${
-            feedback.type === 'success'
-              ? 'border-green-200 bg-green-50 text-green-700'
-              : 'border-red-200 bg-red-50 text-red-700'
-          }`}
+          className={`rounded-md border px-4 py-3 text-sm ${feedback.type === 'success'
+            ? 'border-green-200 bg-green-50 text-green-700'
+            : 'border-red-200 bg-red-50 text-red-700'
+            }`}
         >
           {feedback.message}
         </div>
@@ -209,8 +250,8 @@ export function LecturerVerification() {
                           result.status === 'OFFICIAL'
                             ? 'success'
                             : result.status === 'PENDING'
-                            ? 'secondary'
-                            : 'warning'
+                              ? 'secondary'
+                              : 'warning'
                         }
                       >
                         {result.status}
@@ -233,11 +274,12 @@ export function LecturerVerification() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => verifyMutation.mutate(result.id)}
+                        onClick={() => openModal(result)}
                         disabled={verifyMutation.isPending || result.isVerified}
                       >
                         {result.isVerified ? 'Verified' : 'Verify'}
                       </Button>
+
                     </TableCell>
                   </TableRow>
                 ))}
@@ -253,6 +295,57 @@ export function LecturerVerification() {
             isLoading={courseResultsQuery.isFetching}
           />
         </div>
+        {selectedResult && (
+          <Modal
+            isOpen={isModalOpen}
+            title="Verify Grade Submission"
+            onClose={closeModal}
+          >
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-left text-gray-700">
+                    <th className="px-4 py-2 font-semibold">Field</th>
+                    <th className="px-4 py-2 font-semibold">Database</th>
+                    <th className="px-4 py-2 font-semibold">Blockchain</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 text-gray-700">
+                  {[
+                    { label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.studentName },
+                    { label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
+                    { label: 'Course', db: `${selectedResult.courseName} (${selectedResult.courseCode})`, chain: selectedResult.courseName },
+                    { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
+                    // { label: 'Blockchain Hash', db: selectedResult.blockchainHash ?? '—', chain: selectedResult.blockchainHash ?? '—' },
+                    { label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },
+                  ].map((item) => {
+                    const isDifferent = item.db !== item.chain;
+                    return (
+                      <tr
+                        key={item.label}
+                        className={isDifferent ? 'border-l-4 border-red-500 bg-red-50' : ''}
+                      >
+                        <td className="px-4 py-2 font-medium text-gray-900">{item.label}</td>
+                        <td className="px-4 py-2">{item.db}</td>
+                        <td className="px-4 py-2">{item.chain ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button onClick={handleVerifyConfirm} disabled={verifyMutation.isPending}>
+                {verifyMutation.isPending ? 'Verifying...' : 'Confirm Verify'}
+              </Button>
+            </div>
+
+          </Modal>
+        )}
       </section>
     </div>
   );

@@ -21,6 +21,10 @@ class MockCryptographyService(CryptographyServiceInterface):
 
         Uses JSON serialization with sorted keys for consistent hashing.
         """
+
+        # read data from blockchain
+
+        
         # Convert to JSON with sorted keys for consistency
         json_str = json.dumps(data, sort_keys=True, default=str)
 
