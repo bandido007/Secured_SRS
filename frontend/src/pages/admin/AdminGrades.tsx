@@ -101,6 +101,7 @@ export function AdminGrades() {
 	const courses = coursesQuery.data?.data ?? [];
 	const lecturers = lecturersQuery.data?.data ?? [];
 	const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
+
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const openModal = (result: CourseResult) => {
 		setSelectedResult(result);
@@ -398,7 +399,7 @@ export function AdminGrades() {
 								</thead>
 								<tbody className="divide-y divide-gray-200 text-gray-700">
 									{[
-										{ label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.studentName },
+										{ label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.blockchainData?.studentName },
 										{ label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
 										{ label: 'Course', db: `${selectedResult.courseName} (${selectedResult.courseCode})`, chain: selectedResult.courseName },
 										// { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
@@ -426,7 +427,10 @@ export function AdminGrades() {
 								Cancel
 							</Button>
 							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
-								{verifyGrade.isPending ? 'Verifying...' : 'Confirm Verify'}
+								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Blockchain'}
+							</Button>
+							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
+								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Database'}
 							</Button>
 						</div>
 

@@ -931,10 +931,10 @@ def get_course_results(
         # Safely mutate serialized data (dicts)
         if hasattr(paginated_response, "data") and paginated_response.data:
             new_data = []
+
             for serialized in paginated_response.data:
-                # Ensure dict form
                 db_record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
-                blockchain_record = blockchain.get_course_result(db_record.get("studentNumber"))
+                blockchain_record = blockchain.get_course_result(db_record.get("id")) or {}
 
                 # Prepare data for hashing
                 db_data_for_hash = {
@@ -962,15 +962,21 @@ def get_course_results(
                 crypto = MockCryptographyService()
                 regenerated_db_hash = crypto.compute_hash(db_data_for_hash)
                 regenerated_blockchain_hash = crypto.compute_hash(blockchain_data_for_hash)
-                
+
                 db_record["status"] = (
                     "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
                 )
+                db_record["blockchainData"] = blockchain_data_for_hash
+
                 new_data.append(db_record)
 
-            paginated_response.data = new_data
+            # ✅ After loop, set updated data safely
+            if isinstance(paginated_response.data, list):
+                paginated_response.data = new_data
+            elif isinstance(paginated_response.data, dict) and "results" in paginated_response.data:
+                paginated_response.data["results"] = new_data
 
-        return paginated_response
+            return paginated_response
 
     except Exception as e:
         logger.error(f"Error fetching course results: {e}")
