@@ -53,9 +53,16 @@ class MockBlockchainService(BlockchainServiceInterface):
     def list_courses(self) -> List[Dict[str, Any]]:
         return self._get("/listCourses")
 
+
+    # -----------------------
+    # Course Result APIs
+    # -----------------------
     def upload_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         # data = {"courseId": course_id, "results": results}
         return self._post("/submitGrade", results)
+    
+    def get_course_result(self, result_id: str) -> Dict[str, Any]:
+        return self._get(f"/getResult/{result_id}")
 
     # -----------------------
     # Enrollment APIs

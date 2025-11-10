@@ -22,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../components/ui/Badge';
 import { getErrorMessage } from '../../utils/error';
 import { formatDateTime } from '../../utils/format';
+import { Modal } from '../../components/ui/Modal';
 
 const queryKey = 'admin-course-results';
 
@@ -99,6 +100,22 @@ export function AdminGrades() {
 	const students = studentsQuery.data?.data ?? [];
 	const courses = coursesQuery.data?.data ?? [];
 	const lecturers = lecturersQuery.data?.data ?? [];
+	const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const openModal = (result: CourseResult) => {
+		setSelectedResult(result);
+		setIsModalOpen(true);
+	};
+	const closeModal = () => {
+		setSelectedResult(null);
+		setIsModalOpen(false);
+	};
+
+	const handleVerifyConfirm = () => {
+		if (!selectedResult) return;
+		verifyGrade.mutate(selectedResult.id);
+		closeModal();
+	};
 
 	const verifyGrade = useMutation({
 		mutationFn: async (gradeId: number) => {
@@ -236,11 +253,10 @@ export function AdminGrades() {
 
 			{feedback ? (
 				<div
-					className={`rounded-md border px-4 py-3 text-sm ${
-						feedback.type === 'success'
-							? 'border-green-200 bg-green-50 text-green-700'
-							: 'border-red-200 bg-red-50 text-red-700'
-					}`}
+					className={`rounded-md border px-4 py-3 text-sm ${feedback.type === 'success'
+						? 'border-green-200 bg-green-50 text-green-700'
+						: 'border-red-200 bg-red-50 text-red-700'
+						}`}
 				>
 					{feedback.message}
 				</div>
@@ -318,8 +334,8 @@ export function AdminGrades() {
 													result.status === 'OFFICIAL'
 														? 'success'
 														: result.status === 'PENDING'
-														? 'secondary'
-														: 'warning'
+															? 'secondary'
+															: 'warning'
 												}
 												title={STATUS_DESCRIPTIONS[result.status] ?? 'Grade status information'}
 												aria-label={`Grade status: ${result.status}`}
@@ -338,13 +354,22 @@ export function AdminGrades() {
 										<TableCell>{result.lecturerName}</TableCell>
 										<TableCell className="flex justify-end gap-2">
 											<Button
+												size="sm"
+												variant="outline"
+												onClick={() => openModal(result)}
+												disabled={verifyGrade.isPending || result.isVerified}
+											>
+												{result.isVerified ? 'Verified' : 'Verify'}
+											</Button>
+
+											{/* <Button
 												variant="outline"
 												size="sm"
 												onClick={() => verifyGrade.mutate(result.id)}
 												disabled={verifyGrade.isPending || result.isVerified}
 											>
 												{result.isVerified ? 'Verified' : 'Verify'}
-											</Button>
+											</Button> */}
 										</TableCell>
 									</TableRow>
 								))}
@@ -356,6 +381,57 @@ export function AdminGrades() {
 				<div className="px-4">
 					<Pagination page={pagination} onPageChange={(pageNumber) => setFilters((prev) => ({ ...prev, pageNumber }))} isLoading={isLoading} />
 				</div>
+				{selectedResult && (
+					<Modal
+						isOpen={isModalOpen}
+						title="Verify Grade Submission"
+						onClose={closeModal}
+					>
+						<div className="overflow-x-auto rounded-lg border border-gray-200">
+							<table className="min-w-full border-collapse text-sm">
+								<thead>
+									<tr className="bg-gray-50 text-left text-gray-700">
+										<th className="px-4 py-2 font-semibold">Field</th>
+										<th className="px-4 py-2 font-semibold">Database</th>
+										<th className="px-4 py-2 font-semibold">Blockchain</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-gray-200 text-gray-700">
+									{[
+										{ label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.studentName },
+										{ label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
+										{ label: 'Course', db: `${selectedResult.courseName} (${selectedResult.courseCode})`, chain: selectedResult.courseName },
+										// { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
+										// { label: 'Blockchain Hash', db: selectedResult.blockchainHash ?? '—', chain: selectedResult.blockchainHash ?? '—' },
+										{ label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },
+									].map((item) => {
+										const isDifferent = item.db !== item.chain;
+										return (
+											<tr
+												key={item.label}
+												className={isDifferent ? 'border-l-4 border-red-500 bg-red-50' : ''}
+											>
+												<td className="px-4 py-2 font-medium text-gray-900">{item.label}</td>
+												<td className="px-4 py-2">{item.db}</td>
+												<td className="px-4 py-2">{item.chain ?? '—'}</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+
+						<div className="mt-6 flex justify-end gap-3">
+							<Button variant="outline" onClick={closeModal}>
+								Cancel
+							</Button>
+							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
+								{verifyGrade.isPending ? 'Verifying...' : 'Confirm Verify'}
+							</Button>
+						</div>
+
+					</Modal>
+				)}
 			</section>
 		</div>
 	);

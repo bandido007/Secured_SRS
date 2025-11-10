@@ -933,27 +933,40 @@ def get_course_results(
             new_data = []
             for serialized in paginated_response.data:
                 # Ensure dict form
-                record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
+                db_record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
+                blockchain_record = blockchain.get_course_result(db_record.get("studentNumber"))
 
                 # Prepare data for hashing
-                data_for_hash = {
-                    "studentNumber": record.get("studentNumber"),
-                    "courseCode": record.get("courseCode"),
-                    "academicYear": record.get("academicYear"),
-                    "semester": record.get("semester"),
-                    "gradeType": record.get("gradeType"),
-                    "courseWorkGrade": str(record.get("courseWorkGrade") or ""),
-                    "examGrade": str(record.get("examGrade") or ""),
-                    "remarks": record.get("remarks") or ""
+                db_data_for_hash = {
+                    "studentNumber": db_record.get("studentNumber"),
+                    "courseCode": db_record.get("courseCode"),
+                    "academicYear": db_record.get("academicYear"),
+                    "semester": db_record.get("semester"),
+                    "gradeType": db_record.get("gradeType"),
+                    "courseWorkGrade": str(db_record.get("courseWorkGrade") or ""),
+                    "examGrade": str(db_record.get("examGrade") or ""),
+                    "remarks": db_record.get("remarks") or ""
+                }
+
+                blockchain_data_for_hash = {
+                    "studentNumber": blockchain_record.get("studentNumber"),
+                    "courseCode": blockchain_record.get("courseCode"),
+                    "academicYear": blockchain_record.get("academicYear"),
+                    "semester": blockchain_record.get("semester"),
+                    "gradeType": blockchain_record.get("gradeType"),
+                    "courseWorkGrade": str(blockchain_record.get("courseWorkGrade") or ""),
+                    "examGrade": str(blockchain_record.get("examGrade") or ""),
+                    "remarks": blockchain_record.get("remarks") or ""
                 }
 
                 crypto = MockCryptographyService()
-                regenerated_hash = crypto.compute_hash(data_for_hash)
+                regenerated_db_hash = crypto.compute_hash(db_data_for_hash)
+                regenerated_blockchain_hash = crypto.compute_hash(blockchain_data_for_hash)
                 
-                record["status"] = (
-                    "VALID" if regenerated_hash == record.get("blockchainHash") else "INVALID"
+                db_record["status"] = (
+                    "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
                 )
-                new_data.append(record)
+                new_data.append(db_record)
 
             paginated_response.data = new_data
 

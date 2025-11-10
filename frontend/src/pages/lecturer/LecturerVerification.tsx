@@ -22,27 +22,6 @@ export function LecturerVerification() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const { lecturer, query: lecturerQuery } = useCurrentLecturer();
 
-  const sampleResult = {
-    id: 2,
-    studentName: "Brian Mwangi",
-    studentNumber: "S20230099",
-    courseName: "Blockchain Fundamentals",
-    courseCode: "BC210",
-    status: "PENDING",
-    blockchainHash: "0x77d9b8ac9f0e3dfb08ffacdd112ccaa4433a98d9b2d0a0cf35a5c77f5af41200",
-    submittedAt: "2025-10-19T10:00:00Z",
-    verifiedAt: null,
-    isVerified: false,
-    blockchainData: {
-      studentName: "Brian Mwangi",
-      studentNumber: "S20230099",
-      course: "Blockchain Fundamentals (BC210)",
-      status: "OFFICIAL",
-      hash: "0x77d9b8ac9f0e3dfb08ffacdd112ccaa4433a98d9b2d0a0cf35a5c77f5af412FF",
-      submittedAt: "2025-10-19T09:58:00Z",
-      verifiedAt: null,
-    },
-  };
 
   const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -314,8 +293,8 @@ export function LecturerVerification() {
                   {[
                     { label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.studentName },
                     { label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
-                    { label: 'Course', db: `${selectedResult.courseName} (${selectedResult.courseCode})`, chain: selectedResult.courseName },
-                    { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
+                    { label: 'Course', db: selectedResult.courseName, chain: selectedResult.courseName },
+                    // { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
                     // { label: 'Blockchain Hash', db: selectedResult.blockchainHash ?? '—', chain: selectedResult.blockchainHash ?? '—' },
                     { label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },
                   ].map((item) => {
