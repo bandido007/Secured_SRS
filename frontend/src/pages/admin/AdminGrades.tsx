@@ -401,7 +401,7 @@ export function AdminGrades() {
 									{[
 										{ label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.blockchainData?.studentName },
 										{ label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
-										{ label: 'Course', db: `${selectedResult.courseName} (${selectedResult.courseCode})`, chain: selectedResult.courseName },
+										{ label: 'Course', db: selectedResult.courseName , chain: selectedResult.courseName },
 										// { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
 										// { label: 'Blockchain Hash', db: selectedResult.blockchainHash ?? '—', chain: selectedResult.blockchainHash ?? '—' },
 										{ label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },

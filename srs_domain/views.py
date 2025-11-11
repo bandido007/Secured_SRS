@@ -3,6 +3,7 @@
 from django.conf import settings
 from ninja import Router, Query
 from django.http import HttpRequest
+from ninja.errors import HttpError
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -862,33 +863,31 @@ import hashlib
 
 logger = logging.getLogger(__name__)
 
+
 @domain_router.get(
     "/course-results",
     response=CourseResultsPagedResponseSerializer,
     auth=[PermissionAuth(required_permissions=["view_grade_submissions", "view_own_grade_submissions"])],
     by_alias=True
 )
-def get_course_results(
-    request: HttpRequest,
-    filtering: Query[CourseResultsFilteringSerializer] = None
-):
+def get_course_results(request, filtering: Query[CourseResultsFilteringSerializer] = None):
     """
-    Retrieve course results/grades (paginated).
+    Retrieve paginated course results/grades.
     Also compares regenerated hash with blockchainHash to show verification status.
     """
     try:
         from srs_uaa.authorization.services import AuthorizationService
         authz_service = AuthorizationService()
-
         can_view_all = authz_service.has_permission(request.user.id, "view_grade_submissions")
 
+        # Base queryset
         queryset = CourseResults.objects.select_related(
             'enrollment__student',
             'enrollment__course',
             'submitted_by'
         ).all()
 
-        # If not admin, show only own submissions
+        # Restrict for non-admins
         if not can_view_all:
             lecturer = Lecturer.objects.filter(user=request.user, is_active=True).first()
             if lecturer:
@@ -921,25 +920,27 @@ def get_course_results(
             if filtering.grade_type:
                 queryset = queryset.filter(grade_type=filtering.grade_type)
 
-        # Use pagination helper
+        # Pagination helper
         paginated_response = get_paginated_and_non_paginated_data(
             queryset,
             filtering,
             CourseResultsPagedResponseSerializer
         )
 
-        # Safely mutate serialized data (dicts)
+        # Convert to plain dicts
+        new_data = []
         if hasattr(paginated_response, "data") and paginated_response.data:
-            new_data = []
-
             for serialized in paginated_response.data:
                 db_record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
                 blockchain_record = blockchain.get_course_result(db_record.get("id")) or {}
 
                 # Prepare data for hashing
                 db_data_for_hash = {
+                    "studentName": db_record.get("studentName"),
                     "studentNumber": db_record.get("studentNumber"),
                     "courseCode": db_record.get("courseCode"),
+                    "courseName": db_record.get("courseName"),
+                    "submittedAt": db_record.get("submittedAt"),
                     "academicYear": db_record.get("academicYear"),
                     "semester": db_record.get("semester"),
                     "gradeType": db_record.get("gradeType"),
@@ -949,8 +950,11 @@ def get_course_results(
                 }
 
                 blockchain_data_for_hash = {
+                    "studentName": blockchain_record.get("studentName"),
                     "studentNumber": blockchain_record.get("studentNumber"),
                     "courseCode": blockchain_record.get("courseCode"),
+                    "courseName": blockchain_record.get("courseName"),
+                    "submittedAt": blockchain_record.get("submittedAt"),
                     "academicYear": blockchain_record.get("academicYear"),
                     "semester": blockchain_record.get("semester"),
                     "gradeType": blockchain_record.get("gradeType"),
@@ -963,27 +967,63 @@ def get_course_results(
                 regenerated_db_hash = crypto.compute_hash(db_data_for_hash)
                 regenerated_blockchain_hash = crypto.compute_hash(blockchain_data_for_hash)
 
-                db_record["status"] = (
-                    "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
-                )
+                db_record["status"] = "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
                 db_record["blockchainData"] = blockchain_data_for_hash
+                print(regenerated_blockchain_hash, "*****", regenerated_db_hash)
+
 
                 new_data.append(db_record)
 
-            # ✅ After loop, set updated data safely
-            if isinstance(paginated_response.data, list):
-                paginated_response.data = new_data
-            elif isinstance(paginated_response.data, dict) and "results" in paginated_response.data:
-                paginated_response.data["results"] = new_data
 
-            return paginated_response
-
-    except Exception as e:
-        logger.error(f"Error fetching course results: {e}")
-        return CourseResultsPagedResponseSerializer(
-            response=ResponseObject.get_response(2, message=str(e))
+        # Calculate pagination values
+        page_number = getattr(filtering, "page_number", 1) if filtering else 1
+        items_per_page = getattr(filtering, "items_per_page", 10) if filtering else len(new_data)
+        total_items = queryset.count()
+        number_of_pages = (total_items + items_per_page - 1) // items_per_page if items_per_page > 0 else 1
+        
+        # Prepare pagination info with all required fields
+        page_info = PaginationResponseSerializer(
+            page_number=page_number,
+            items_per_page=items_per_page,
+            total_items=total_items,
+            number=page_number,
+            has_next_page=page_number < number_of_pages,
+            has_previous_page=page_number > 1,
+            current_page_number=page_number,
+            next_page_number=page_number + 1 if page_number < number_of_pages else None,
+            previous_page_number=page_number - 1 if page_number > 1 else None,
+            number_of_pages=number_of_pages,
+            total_elements=total_items
         )
 
+        # Return wrapped response
+        return CourseResultsPagedResponseSerializer(
+            response=ResponseSerializer(id=0, status=True, message="Success", code=0),
+            data=new_data,
+            page=page_info
+        )
+    except Exception as e:
+        # Log the error and return error response
+        print(f"Error in get_course_results: {str(e)}")
+        return CourseResultsPagedResponseSerializer(
+            response=ResponseSerializer(id=0, status=False, message=f"Error: {str(e)}", code=500),
+            data=[],
+            page=PaginationResponseSerializer(
+                page_number=1,
+                items_per_page=10,
+                total_items=0,
+                number=1,
+                has_next_page=False,
+                has_previous_page=False,
+                current_page_number=1,
+                next_page_number=None,
+                previous_page_number=None,
+                number_of_pages=1,
+                total_elements=0
+            )
+        )
+    
+    
 @domain_router.post(
     "/course-results",
     response=BaseNonPagedResponseData,

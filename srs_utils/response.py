@@ -125,8 +125,6 @@ class ResponseObject:
             response_code["code"],
             message if message else response_code["message"],
         )
-
-
 def get_paginated_and_non_paginated_data(
     model: Type[T],
     filtering_object: dict | None,
@@ -146,8 +144,8 @@ def get_paginated_and_non_paginated_data(
     Args:
         model (Model): The Django model to query.
         filters (Q): The filters to apply to the queryset.
-        serializer(object): serializer class for response
-        custom_look_up_filter(dict): custom lookup in the  query filters default is None
+        serializer(object): serializer class for response (should be a response wrapper serializer)
+        custom_look_up_filter(dict): custom lookup in the query filters default is None
         additional_filters(Q): additional filters to be passed
         is_paged(bool): defaulted to True change to false to make list not page
     Returns:
@@ -232,14 +230,36 @@ def get_paginated_and_non_paginated_data(
             )
 
         if not is_paged:
+            # Get the item serializer from the response serializer's 'data' type hint
+            # For non-paged, data could be a single item or a list
+            data_annotation = serializer.__annotations__.get('data')
+            
+            # Check if it's Optional or has __origin__ (like List, Union, etc.)
+            if hasattr(data_annotation, '__origin__'):
+                # Handle Optional[List[ItemSerializer]] or List[ItemSerializer]
+                if hasattr(data_annotation, '__args__'):
+                    # Get the inner type (could be List or the actual serializer)
+                    inner_type = data_annotation.__args__[0]
+                    if hasattr(inner_type, '__origin__') and inner_type.__origin__ is list:
+                        # It's List[ItemSerializer]
+                        item_serializer = inner_type.__args__[0]
+                        serialized_data = [item_serializer.model_validate(item) for item in queryset]
+                    else:
+                        # It's just ItemSerializer (non-list)
+                        item_serializer = inner_type
+                        serialized_data = [item_serializer.model_validate(item) for item in queryset]
+            else:
+                # Direct serializer type
+                item_serializer = data_annotation
+                serialized_data = [item_serializer.model_validate(item) for item in queryset]
+            
             data_object = serializer(
-                response=ResponseObject.get_response(id=1), data=queryset
+                response=ResponseObject.get_response(id=1),
+                data=serialized_data
             )
+            
             if additional_computed_values is not None:
-                for (
-                    additional_attr,
-                    additional_values,
-                ) in additional_computed_values.items():
+                for additional_attr, additional_values in additional_computed_values.items():
                     setattr(data_object, additional_attr, additional_values)
 
             return data_object
@@ -263,15 +283,41 @@ def get_paginated_and_non_paginated_data(
 
         data = paginated_data.page(page_number)
 
+        # Get the item serializer from the response serializer's 'data' type hint
+        # For paged responses, data is typically List[ItemSerializer]
+        data_annotation = serializer.__annotations__.get('data')
+        
+        # Extract the item serializer from List[ItemSerializer] or Optional[List[ItemSerializer]]
+        if hasattr(data_annotation, '__origin__'):
+            # Handle Optional[List[ItemSerializer]]
+            if hasattr(data_annotation, '__args__'):
+                for arg in data_annotation.__args__:
+                    if hasattr(arg, '__origin__') and arg.__origin__ is list:
+                        # Found List[ItemSerializer]
+                        item_serializer = arg.__args__[0]
+                        break
+                else:
+                    # Might be directly List[ItemSerializer]
+                    if data_annotation.__origin__ is list:
+                        item_serializer = data_annotation.__args__[0]
+                    else:
+                        raise ValueError("Could not extract item serializer from data annotation")
+            else:
+                raise ValueError("Could not extract item serializer from data annotation")
+        else:
+            raise ValueError("Data annotation should be a List type for paged responses")
+        
+        # Serialize each item in the page
+        serialized_data = [item_serializer.model_validate(item) for item in data]
+
         data_object = serializer(
-            response=ResponseObject.get_response(id=1), page=page_obj, data=data
+            response=ResponseObject.get_response(id=1),
+            page=page_obj,
+            data=serialized_data
         )
 
         if additional_computed_values is not None:
-            for (
-                additional_attr,
-                additional_values,
-            ) in additional_computed_values.items():
+            for additional_attr, additional_values in additional_computed_values.items():
                 setattr(data_object, additional_attr, additional_values)
 
         return data_object

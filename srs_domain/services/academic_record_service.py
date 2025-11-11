@@ -204,8 +204,19 @@ class AcademicRecordService:
                 # Upload to blockchain asynchronously
                 chaincode_response = self.blockchain.upload_results(
                     results={
-                        "resultId": grade.id,
-                        "enrollmentId": grade.enrollment.id,
+                        "id": grade.id,
+                        "uniqueId": "",
+                        "createdDate": "",
+                        "updatedDate": "",
+                        "isActive": True,
+                        "createdBy": "null",
+                        "id.toString()": 13,
+                        "studentName": str(grade.enrollment.student),
+                        "studentNumber": grade.student.student_id,
+                        "courseCode": grade.enrollment.course.course_code,
+                        "courseName": grade.enrollment.course.course_name,
+                        "semester": grade.enrollment.semester,
+                        "academicYear": grade.enrollment.academic_year,
                         "gradeType": grade.grade_type,
                         "numericGrade": convert_decimal(grade.numeric_grade),
                         "letterGrade": grade.letter_grade or "",
@@ -213,7 +224,15 @@ class AcademicRecordService:
                         "examGrade": convert_decimal(grade.exam_grade),
                         "remarks": grade.remarks,
                         "comments": grade.comments,
-                        "submittedAt": str(grade.submitted_at)
+                        "submittedAt": str(grade.submitted_at),
+                        "status": "INVALID",
+                        "submittedById": grade.submitted_by.lecturer_id,
+                        "lecturerName": str(grade.enrollment.lecturer),
+                        "verifiedAt": "",
+                        "isVerified": False,
+                        "blockchainHash": "",
+                        "blockchainTransactionId": "",
+                        "ipfsCid": ""
                     }
                 )
                 logger.info(f"Blockchain response: {chaincode_response}")

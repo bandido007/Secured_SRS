@@ -281,6 +281,9 @@ class EnrollmentNonPagedResponseSerializer(BaseNonPagedResponseData):
 # ================================================================
 
 class CourseResultsTableSerializer(BaseSerializer):
+    class Config:
+        extra = "allow"
+        
     """Table display serializer for CourseResults"""
     enrollment_id: int
     student_name: str
@@ -304,6 +307,8 @@ class CourseResultsTableSerializer(BaseSerializer):
     blockchain_hash: Optional[str] = None
     blockchain_transaction_id: Optional[str] = None
     ipfs_cid: Optional[str] = None
+    blockchainData: Optional[dict] = None
+    
 
     @model_validator(mode='before')
     @classmethod
@@ -336,7 +341,8 @@ class CourseResultsTableSerializer(BaseSerializer):
                 'is_verified': data.is_verified,
                 'blockchain_hash': data.blockchain_hash,
                 'blockchain_transaction_id': data.blockchain_transaction_id,
-                'ipfs_cid': data.ipfs_cid
+                'ipfs_cid': data.ipfs_cid,
+               
             }
         return data
 

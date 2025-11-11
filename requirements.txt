@@ -23,3 +23,4 @@ minio==7.2.16
 psycopg2-binary==2.9.7
 requests==2.31.0
 OpenAI
+aiohttp

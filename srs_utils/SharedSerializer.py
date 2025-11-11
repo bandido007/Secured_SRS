@@ -1,5 +1,5 @@
-from ninja import Schema
-from typing import List
+from ninja import Schema 
+from typing import List , Optional
 from datetime import date
 from uuid import UUID
 import enum
@@ -42,8 +42,8 @@ class PaginationResponseSerializer(Schema):
     has_next_page: bool = None
     has_previous_page: bool = None
     current_page_number: int = None
-    next_page_number: int = None
-    previous_page_number: int = None
+    next_page_number: Optional[int]
+    previous_page_number: Optional[int]
     number_of_pages: int = None
     total_elements: int = None
     pages_number_array: List[int] | None = None
