@@ -27,6 +27,63 @@ logger = logging.getLogger("srs_logger")
 domain_router = Router()
 blockchain = MockBlockchainService()
 
+from datetime import datetime, timezone
+
+def normalize_datetime(value):
+    """
+    Normalize datetime to ISO8601 with milliseconds precision.
+    Ensures deterministic hashing between DB & blockchain.
+    """
+    if value is None:
+        return ""
+    
+    if isinstance(value, str):
+        # Ensure string becomes datetime then normalize consistently
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except:
+            return value  # fallback to original
+    elif isinstance(value, datetime):
+        dt = value
+    else:
+        return value
+
+    # Normalize microseconds to milliseconds
+    ms = int(dt.microsecond / 1000)
+
+    dt = dt.replace(microsecond=ms * 1000)
+    return dt.astimezone(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def normalize_string(value):
+    """Lowercase + strip for deterministic hashing."""
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip().lower()
+    return value
+
+
+def normalize_hash_data(data: dict) -> dict:
+    """
+    Normalize all fields used for hashing.
+    Ensures DB and blockchain produce the same structure.
+    """
+    return {
+        "studentName": normalize_string(data.get("studentName")),
+        "studentNumber": normalize_string(data.get("studentNumber")),
+        "courseCode": normalize_string(data.get("courseCode")),
+        "courseName": normalize_string(data.get("courseName")),
+        "submittedAt": normalize_datetime(data.get("submittedAt")),
+        "academicYear": normalize_string(data.get("academicYear")),
+        "semester": normalize_string(data.get("semester")),
+        "gradeType": normalize_string(data.get("gradeType")),
+        "courseWorkGrade": str(data.get("courseWorkGrade") or "").strip(),
+        "examGrade": str(data.get("examGrade") or "").strip(),
+        "remarks": normalize_string(data.get("remarks")),
+    }
+
+
 def _get_request_user_or_none(request: HttpRequest):
     user = getattr(request, "user", None)
     if user is None:
@@ -928,51 +985,42 @@ def get_course_results(request, filtering: Query[CourseResultsFilteringSerialize
         )
 
         # Convert to plain dicts
+                # Convert to plain dicts
         new_data = []
         if hasattr(paginated_response, "data") and paginated_response.data:
             for serialized in paginated_response.data:
+
                 db_record = serialized.dict(by_alias=True) if hasattr(serialized, "dict") else serialized
                 blockchain_record = blockchain.get_course_result(db_record.get("id")) or {}
 
-                # Prepare data for hashing
-                db_data_for_hash = {
-                    "studentName": db_record.get("studentName"),
-                    "studentNumber": db_record.get("studentNumber"),
-                    "courseCode": db_record.get("courseCode"),
-                    "courseName": db_record.get("courseName"),
-                    "submittedAt": db_record.get("submittedAt"),
-                    "academicYear": db_record.get("academicYear"),
-                    "semester": db_record.get("semester"),
-                    "gradeType": db_record.get("gradeType"),
-                    "courseWorkGrade": str(db_record.get("courseWorkGrade") or ""),
-                    "examGrade": str(db_record.get("examGrade") or ""),
-                    "remarks": db_record.get("remarks") or ""
-                }
+                # --- PREPARE NORMALIZED HASH INPUTS ---
+                normalized_db_hash_data = normalize_hash_data(db_record)
+                normalized_blockchain_hash_data = normalize_hash_data(blockchain_record)
 
-                blockchain_data_for_hash = {
-                    "studentName": blockchain_record.get("studentName"),
-                    "studentNumber": blockchain_record.get("studentNumber"),
-                    "courseCode": blockchain_record.get("courseCode"),
-                    "courseName": blockchain_record.get("courseName"),
-                    "submittedAt": blockchain_record.get("submittedAt"),
-                    "academicYear": blockchain_record.get("academicYear"),
-                    "semester": blockchain_record.get("semester"),
-                    "gradeType": blockchain_record.get("gradeType"),
-                    "courseWorkGrade": str(blockchain_record.get("courseWorkGrade") or ""),
-                    "examGrade": str(blockchain_record.get("examGrade") or ""),
-                    "remarks": blockchain_record.get("remarks") or ""
-                }
-
+                # Compute deterministic hashes
                 crypto = MockCryptographyService()
-                regenerated_db_hash = crypto.compute_hash(db_data_for_hash)
-                regenerated_blockchain_hash = crypto.compute_hash(blockchain_data_for_hash)
+                regenerated_db_hash = crypto.compute_hash(
+                    normalized_db_hash_data
+                )
+                regenerated_blockchain_hash = crypto.compute_hash(
+                    normalized_blockchain_hash_data
+                )
 
-                db_record["status"] = "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
-                db_record["blockchainData"] = blockchain_data_for_hash
+                # Add verification status
+                db_record["status"] = (
+                    "VALID" if regenerated_db_hash == regenerated_blockchain_hash else "INVALID"
+                )
+
+                # Also include normalized blockchain data
+                db_record["blockchainData"] = normalized_blockchain_hash_data
+
+                # Debug prints
                 print(regenerated_blockchain_hash, "*****", regenerated_db_hash)
-
+                print("Blockchain Data:", normalized_blockchain_hash_data)
+                print("DB Data:", normalized_db_hash_data)
 
                 new_data.append(db_record)
+
 
 
         # Calculate pagination values

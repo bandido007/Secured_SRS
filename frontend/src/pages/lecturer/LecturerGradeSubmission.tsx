@@ -52,9 +52,33 @@ export function LecturerGradeSubmission() {
   const [enrollmentFilters, setEnrollmentFilters] = useState<EnrollmentFilters>({ pageNumber: 1, itemsPerPage: 10 });
   const [resultFilters, setResultFilters] = useState<CourseResultFilters>({ pageNumber: 1, itemsPerPage: 10 });
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
+  const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [gradeForm, setGradeForm] = useState<GradeFormState>(DEFAULT_GRADE_FORM);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null);
+  const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
+
+
+  const openVerifyModal = (result: CourseResult) => {
+    setSelectedResult(result);
+    setIsVerifyModalOpen(true);
+  };
+
+  const openGradeModal = (enrollment: Enrollment) => {
+    setSelectedEnrollment(enrollment);
+    setGradeForm(DEFAULT_GRADE_FORM);
+    setIsGradeModalOpen(true);
+  };
+
+  const closeGradeModal = () => {
+    setSelectedEnrollment(null);
+    setIsGradeModalOpen(false);
+  };
+
+  const closeVerifyModal = () => {
+    setSelectedResult(null);
+    setIsVerifyModalOpen(false);
+  };
 
   const { lecturer, query: lecturerQuery } = useCurrentLecturer();
 
@@ -125,7 +149,7 @@ export function LecturerGradeSubmission() {
     },
     onSuccess: (data) => {
       setFeedback({ type: 'success', message: data?.response.message ?? 'Grade submitted successfully' });
-      setIsModalOpen(false);
+      setIsGradeModalOpen(false);
       resetFormState();
       queryClient.invalidateQueries({ queryKey: [RESULTS_QUERY_KEY] }).catch((error) => {
         console.error('Failed to refresh lecturer results', error);
@@ -136,11 +160,6 @@ export function LecturerGradeSubmission() {
     },
   });
 
-  const openGradeModal = (enrollment: Enrollment) => {
-    setSelectedEnrollment(enrollment);
-    setGradeForm(DEFAULT_GRADE_FORM);
-    setIsModalOpen(true);
-  };
 
   const handleEnrollmentFilters = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -209,11 +228,10 @@ export function LecturerGradeSubmission() {
 
       {feedback ? (
         <div
-          className={`rounded-md border px-4 py-3 text-sm ${
-            feedback.type === 'success'
+          className={`rounded-md border px-4 py-3 text-sm ${feedback.type === 'success'
               ? 'border-green-200 bg-green-50 text-green-700'
               : 'border-red-200 bg-red-50 text-red-700'
-          }`}
+            }`}
         >
           {feedback.message}
         </div>
@@ -363,6 +381,7 @@ export function LecturerGradeSubmission() {
                     <TableHead>Grade</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Submitted</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -384,8 +403,8 @@ export function LecturerGradeSubmission() {
                         {result.gradeType === 'NUMERIC'
                           ? result.numericGrade ?? '—'
                           : result.gradeType === 'LETTER'
-                          ? result.letterGrade ?? '—'
-                          : 'Pass/Fail'}
+                            ? result.letterGrade ?? '—'
+                            : 'Pass/Fail'}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -393,14 +412,32 @@ export function LecturerGradeSubmission() {
                             result.status === 'OFFICIAL'
                               ? 'success'
                               : result.status === 'PENDING'
-                              ? 'secondary'
-                              : 'warning'
+                                ? 'secondary'
+                                : 'warning'
                           }
                         >
                           {result.status}
                         </Badge>
                       </TableCell>
                       <TableCell>{formatDateTime(result.submittedAt)}</TableCell>
+                      <TableCell className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openVerifyModal(result)}
+                        >
+                          {result.isVerified ? 'Verified' : 'Verify'}
+                        </Button>
+
+                        {/* <Button
+												variant="outline"
+												size="sm"
+												onClick={() => verifyGrade.mutate(result.id)}
+												disabled={verifyGrade.isPending || result.isVerified}
+											>
+												{result.isVerified ? 'Verified' : 'Verify'}
+											</Button> */}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -413,20 +450,76 @@ export function LecturerGradeSubmission() {
           onPageChange={(pageNumber) => setResultFilters((prev) => ({ ...prev, pageNumber }))}
           isLoading={courseResultsQuery.isFetching}
         />
+
+        {selectedResult && (
+  <Modal
+    isOpen={isVerifyModalOpen}
+    title="Verify Grade Submission"
+    onClose={closeVerifyModal}
+  >
+
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-left text-gray-700">
+                    <th className="px-4 py-2 font-semibold">Field</th>
+                    <th className="px-4 py-2 font-semibold">Database</th>
+                    <th className="px-4 py-2 font-semibold">Blockchain</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 text-gray-700">
+                  {[
+                    { label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.blockchainData?.studentName },
+                    { label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
+                    { label: 'Course', db: selectedResult.courseName, chain: selectedResult.courseName },
+                    { label: 'CourseWork Grade', db: selectedResult.courseWorkGrade, chain: selectedResult.courseWorkGrade },
+                    { label: 'Exam Grade', db: selectedResult.examGrade ?? '—', chain: selectedResult.examGrade ?? '—' },
+                    { label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },
+                  ].map((item) => {
+                    const isDifferent = item.db !== item.chain;
+                    return (
+                      <tr
+                        key={item.label}
+                        className={isDifferent ? 'border-l-4 border-red-500 bg-red-50' : ''}
+                      >
+                        <td className="px-4 py-2 font-medium text-gray-900">{item.label}</td>
+                        <td className="px-4 py-2">{item.db}</td>
+                        <td className="px-4 py-2">{item.chain ?? '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              {/* <Button variant="outline" onClick={closeModal}>
+								Cancel
+							</Button> */}
+              {/* <Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
+								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Blockchain'}
+							</Button>
+							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
+								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Database'}
+							</Button> */}
+            </div>
+
+          </Modal>
+        )}
       </section>
 
       <Modal
         title="Submit grade"
         description={selectedEnrollment ? `Record results for ${selectedEnrollment.courseCode}` : 'Select an enrollment to submit a grade.'}
-        isOpen={isModalOpen}
+        isOpen={isGradeModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setIsGradeModalOpen(false);
           resetFormState();
         }}
         footer={
           <>
             <Button variant="outline" onClick={() => {
-              setIsModalOpen(false);
+              setIsGradeModalOpen(false);
               resetFormState();
             }}>
               Cancel

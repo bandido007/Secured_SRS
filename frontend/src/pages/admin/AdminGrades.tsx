@@ -400,11 +400,11 @@ export function AdminGrades() {
 								<tbody className="divide-y divide-gray-200 text-gray-700">
 									{[
 										{ label: 'Student Name', db: selectedResult.studentName, chain: selectedResult.blockchainData?.studentName },
-										{ label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.studentNumber },
-										{ label: 'Course', db: selectedResult.courseName , chain: selectedResult.courseName },
-										// { label: 'Status', db: selectedResult.status, chain: selectedResult.status },
-										// { label: 'Blockchain Hash', db: selectedResult.blockchainHash ?? '—', chain: selectedResult.blockchainHash ?? '—' },
-										{ label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.submittedAt) : '—' },
+										{ label: 'Student Number', db: selectedResult.studentNumber, chain: selectedResult.blockchainData?.studentNumber },
+										{ label: 'Course', db: selectedResult.courseName, chain: selectedResult.blockchainData?.courseName },
+										{ label: 'CourseWork Grade', db: selectedResult.courseWorkGrade, chain: selectedResult.blockchainData?.courseWorkGrade },
+										{ label: 'Exam Grade', db: selectedResult.examGrade ?? '—', chain: selectedResult.blockchainData?.examGrade ?? '—' },
+										{ label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.blockchainData?.submittedAt) : '—' },
 									].map((item) => {
 										const isDifferent = item.db !== item.chain;
 										return (
@@ -423,15 +423,15 @@ export function AdminGrades() {
 						</div>
 
 						<div className="mt-6 flex justify-end gap-3">
-							<Button variant="outline" onClick={closeModal}>
+							{/* <Button variant="outline" onClick={closeModal}>
 								Cancel
-							</Button>
-							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
+							</Button> */}
+							{/* <Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
 								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Blockchain'}
 							</Button>
 							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
 								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Database'}
-							</Button>
+							</Button> */}
 						</div>
 
 					</Modal>

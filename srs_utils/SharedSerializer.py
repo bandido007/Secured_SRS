@@ -11,6 +11,15 @@ def to_camel(string: str) -> str:
         for (index, word) in enumerate(string.split("_"))
     )
 
+def normalize_datetime(dt):
+    if isinstance(dt, datetime):
+        return dt.replace(microsecond=int(dt.microsecond/1000)*1000).isoformat(timespec="milliseconds") + "Z"
+    return dt
+
+
+def normalize(s):
+    return s.strip().lower() if isinstance(s, str) else s
+
 
 class TimeRangeEnum(str, enum.Enum):
     TODAY = "TODAY"

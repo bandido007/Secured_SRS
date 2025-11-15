@@ -204,7 +204,7 @@ export function LecturerVerification() {
                   <TableHead>Status</TableHead>
                   <TableHead>Blockchain Hash</TableHead>
                   <TableHead>Submitted</TableHead>
-                  {/* <TableHead>Verified</TableHead> */}
+                  <TableHead>Verified</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -242,13 +242,13 @@ export function LecturerVerification() {
                       </div>
                     </TableCell>
                     <TableCell>{formatDateTime(result.submittedAt)}</TableCell>
-                    {/* <TableCell>
+                    <TableCell>
                       {result.isVerified ? (
                         <span className="text-sm text-green-600">{formatDateTime(result.verifiedAt)}</span>
                       ) : (
                         <span className="text-sm text-gray-500">Awaiting</span>
                       )}
-                    </TableCell> */}
+                    </TableCell>
                     <TableCell className="flex justify-end">
                       {result.status !== 'VALID' && (
                         <Button
