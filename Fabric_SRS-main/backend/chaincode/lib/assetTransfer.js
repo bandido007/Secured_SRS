@@ -118,6 +118,18 @@ class SRSContract extends Contract {
     return await CourseResult.getAuditTrail(ctx, resultId);
   }
 
+  async updateGrade(ctx, resultId, data) {
+    return await CourseResult.update(ctx, resultId, JSON.parse(data));
+  }
+
+  async getGradeVersionHistory(ctx, resultId) {
+    return await CourseResult.getVersionHistory(ctx, resultId);
+  }
+
+  async verifyGradeIntegrity(ctx, resultId) {
+    return await CourseResult.verifyIntegrity(ctx, resultId);
+  }
+
   // ========== TRANSCRIPTS ==========
   async generateTranscript(ctx, data) {
     return await Transcript.generate(ctx, JSON.parse(data));

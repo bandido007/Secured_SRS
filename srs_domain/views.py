@@ -1318,9 +1318,23 @@ def update_course_result(request: HttpRequest, grade_id: int, input: CourseResul
             grade.verified_at = None
             grade.status = 'PENDING'
         
-        # Update blockchain mock storage
+        # Update blockchain with proper result_id format
         blockchain = MockBlockchainService()
-        transaction_result = blockchain.update_course_result(grade_id, grade_data)
+        result_id = f"result_{enrollment.id}"
+
+        # Prepare blockchain update data
+        blockchain_update_data = {
+            'enrollmentId': enrollment.id,
+            'gradeType': input.grade_type,
+            'numericGrade': float(input.numeric_grade) if input.numeric_grade else None,
+            'letterGrade': input.letter_grade,
+            'courseWorkGrade': float(input.course_work_grade) if input.course_work_grade else None,
+            'examGrade': float(input.exam_grade) if input.exam_grade else None,
+            'remarks': input.remarks or '',
+            'updateReason': input.comments if hasattr(input, 'comments') and input.comments else 'Grade correction'
+        }
+
+        transaction_result = blockchain.update_course_result(result_id, blockchain_update_data)
         
         if transaction_result:
             grade.blockchain_transaction_id = transaction_result.get('transactionId', '')
@@ -1421,6 +1435,146 @@ def update_course_result(request: HttpRequest, grade_id: int, input: CourseResul
         
     except Exception as e:
         logger.error(f"Error updating grade {grade_id}: {e}")
+        return BaseNonPagedResponseData(
+            response=ResponseObject.get_response(0, message=str(e))
+        )
+
+
+@domain_router.get(
+    "/course-results/{grade_id}/version-history",
+    response=BaseNonPagedResponseData,
+    auth=[PermissionAuth(required_permissions=["view_all_grade_submissions"])]
+)
+def get_grade_version_history(request: HttpRequest, grade_id: int):
+    """
+    Get complete version history for a grade from blockchain.
+    Shows all changes with old/new values and audit trail.
+    """
+    try:
+        grade = get_object_or_404(CourseResult, pk=grade_id)
+        enrollment = grade.enrollment
+        result_id = f"result_{enrollment.id}"
+
+        blockchain = MockBlockchainService()
+
+        # Get version history from blockchain
+        try:
+            version_data = blockchain.get_version_history(result_id)
+
+            # Enrich with database info
+            response_data = {
+                'gradeId': grade_id,
+                'metadata': {
+                    'studentNumber': enrollment.student.student_id,
+                    'studentName': f"{enrollment.student.first_name} {enrollment.student.last_name}",
+                    'courseCode': enrollment.course.course_code,
+                    'courseName': enrollment.course.course_name,
+                    'currentStatus': grade.status,
+                    'currentGrade': float(grade.numeric_grade) if grade.numeric_grade else None,
+                    'totalUpdates': version_data.get('totalUpdates', 0)
+                },
+                'currentVersion': version_data.get('currentGrade'),
+                'versionHistory': version_data.get('versionHistory', []),
+                'totalVersions': version_data.get('totalVersions', 0)
+            }
+
+            return BaseNonPagedResponseData(
+                response=ResponseObject.get_response(1, "Version history retrieved successfully"),
+                data=response_data
+            )
+
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Blockchain unavailable for version history: {e}")
+            # Fallback to database audit trail
+            audit_records = RecordTransaction.objects.filter(
+                grade=grade
+            ).order_by('transaction_date')
+
+            versions = []
+            for idx, record in enumerate(audit_records, 1):
+                versions.append({
+                    'versionNumber': idx,
+                    'timestamp': record.transaction_date.isoformat(),
+                    'transactionType': record.transaction_type,
+                    'transactionId': record.transaction_id,
+                    'performer': record.performed_by.username if record.performed_by else 'Unknown',
+                    'comments': record.comments
+                })
+
+            return BaseNonPagedResponseData(
+                response=ResponseObject.get_response(1, "Version history from database (blockchain unavailable)"),
+                data={
+                    'gradeId': grade_id,
+                    'metadata': {
+                        'studentNumber': enrollment.student.student_id,
+                        'currentStatus': grade.status
+                    },
+                    'versionHistory': versions,
+                    'totalVersions': len(versions),
+                    'source': 'database'
+                }
+            )
+
+    except Exception as e:
+        logger.error(f"Error fetching version history for grade {grade_id}: {e}")
+        return BaseNonPagedResponseData(
+            response=ResponseObject.get_response(0, message=str(e))
+        )
+
+
+@domain_router.get(
+    "/course-results/{grade_id}/verify-integrity",
+    response=BaseNonPagedResponseData,
+    auth=[PermissionAuth(required_permissions=["view_all_grade_submissions"])]
+)
+def verify_grade_integrity(request: HttpRequest, grade_id: int):
+    """
+    Real-time integrity verification against blockchain.
+    Compares database hash with blockchain hash.
+    """
+    try:
+        grade = get_object_or_404(CourseResult, pk=grade_id)
+        enrollment = grade.enrollment
+        result_id = f"result_{enrollment.id}"
+
+        blockchain = MockBlockchainService()
+
+        try:
+            # Get integrity check from blockchain
+            verification = blockchain.verify_grade_integrity(result_id)
+
+            return BaseNonPagedResponseData(
+                response=ResponseObject.get_response(
+                    1 if verification.get('isValid') else 0,
+                    verification.get('message', 'Verification completed')
+                ),
+                data={
+                    'gradeId': grade_id,
+                    'resultId': result_id,
+                    'isValid': verification.get('isValid'),
+                    'status': verification.get('status'),
+                    'databaseHash': grade.blockchain_hash,
+                    'blockchainHash': verification.get('storedHash'),
+                    'computedHash': verification.get('computedHash'),
+                    'timestamp': verification.get('timestamp'),
+                    'verified': verification.get('isValid')
+                }
+            )
+
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Blockchain unavailable for integrity check: {e}")
+            return BaseNonPagedResponseData(
+                response=ResponseObject.get_response(0, "Blockchain verification service unavailable"),
+                data={
+                    'gradeId': grade_id,
+                    'isValid': None,
+                    'status': 'UNAVAILABLE',
+                    'message': 'Cannot verify - blockchain service is offline'
+                }
+            )
+
+    except Exception as e:
+        logger.error(f"Error verifying integrity for grade {grade_id}: {e}")
         return BaseNonPagedResponseData(
             response=ResponseObject.get_response(0, message=str(e))
         )

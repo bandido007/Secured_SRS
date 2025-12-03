@@ -239,6 +239,58 @@ app.get('/getGradeAudit/:resultId', async (req, res) => {
     }
 });
 
+// 👉 Update a grade
+app.put('/updateGrade/:resultId', async (req, res) => {
+    try {
+        const contract = await getContract('lecturer1', chaincodeName);
+        const response = await contract.submitTransaction(
+            'updateGrade',
+            req.params.resultId,
+            JSON.stringify(req.body)
+        );
+        res.json(JSON.parse(response.toString()));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message || 'Failed to update grade' });
+    }
+});
+
+// 👉 Get grade version history
+app.get('/getGradeVersionHistory/:resultId', async (req, res) => {
+    try {
+        const contract = await getContract('admin', chaincodeName);
+        const response = await contract.evaluateTransaction('getGradeVersionHistory', req.params.resultId);
+        res.json(JSON.parse(response.toString()));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch version history' });
+    }
+});
+
+// 👉 Verify grade integrity (real-time hash check)
+app.get('/verifyGradeIntegrity/:resultId', async (req, res) => {
+    try {
+        const contract = await getContract('admin', chaincodeName);
+        const response = await contract.evaluateTransaction('verifyGradeIntegrity', req.params.resultId);
+        res.json(JSON.parse(response.toString()));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to verify grade integrity' });
+    }
+});
+
+// 👉 Get grade by resultId
+app.get('/getGrade/:resultId', async (req, res) => {
+    try {
+        const contract = await getContract('admin', chaincodeName);
+        const response = await contract.evaluateTransaction('GetAsset', req.params.resultId);
+        res.json(JSON.parse(response.toString()));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch grade' });
+    }
+});
+
 // 👉 Generate transcript
 app.post('/generateTranscript', async (req, res) => {
     try {

@@ -23,6 +23,12 @@ class MockBlockchainService(BlockchainServiceInterface):
         response.raise_for_status()
         return response.json()
 
+    def _put(self, endpoint: str, data: Dict[str, Any]) -> Any:
+        url = f"{self.base_url}{endpoint}"
+        response = requests.put(url, json=data)
+        response.raise_for_status()
+        return response.json()
+
     # -----------------------
     # Student APIs
     # -----------------------
@@ -62,25 +68,23 @@ class MockBlockchainService(BlockchainServiceInterface):
         return self._post("/submitGrade", results)
     
     def get_course_result(self, result_id: str) -> Dict[str, Any]:
-        return self._get(f"/getResult/{result_id}")
-    
-    def update_course_result(self, result_id: int, grade_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Get a specific grade from blockchain by result ID"""
+        return self._get(f"/getGrade/{result_id}")
+
+    def update_course_result(self, result_id: str, grade_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update an existing course result on the blockchain.
-        Creates a new transaction with updated grade data.
+        Calls the proper updateGrade endpoint which creates immutable audit trail.
         """
-        try:
-            # For now, treat update as a new submission to maintain blockchain immutability
-            # In a real blockchain, this would create a new block referencing the old one
-            return self._post("/submitGrade", grade_data)
-        except Exception as e:
-            # Fallback: return a mock transaction result
-            import time
-            return {
-                'transactionId': f"UPDATE-{result_id}-{int(time.time())}",
-                'success': True,
-                'message': 'Grade updated (mock)'
-            }
+        return self._put(f"/updateGrade/{result_id}", grade_data)
+
+    def get_version_history(self, result_id: str) -> Dict[str, Any]:
+        """Get complete version history for a grade from blockchain"""
+        return self._get(f"/getGradeVersionHistory/{result_id}")
+
+    def verify_grade_integrity(self, result_id: str) -> Dict[str, Any]:
+        """Real-time verification of grade integrity against blockchain"""
+        return self._get(f"/verifyGradeIntegrity/{result_id}")
 
     # -----------------------
     # Enrollment APIs
