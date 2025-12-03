@@ -63,6 +63,24 @@ class MockBlockchainService(BlockchainServiceInterface):
     
     def get_course_result(self, result_id: str) -> Dict[str, Any]:
         return self._get(f"/getResult/{result_id}")
+    
+    def update_course_result(self, result_id: int, grade_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update an existing course result on the blockchain.
+        Creates a new transaction with updated grade data.
+        """
+        try:
+            # For now, treat update as a new submission to maintain blockchain immutability
+            # In a real blockchain, this would create a new block referencing the old one
+            return self._post("/submitGrade", grade_data)
+        except Exception as e:
+            # Fallback: return a mock transaction result
+            import time
+            return {
+                'transactionId': f"UPDATE-{result_id}-{int(time.time())}",
+                'success': True,
+                'message': 'Grade updated (mock)'
+            }
 
     # -----------------------
     # Enrollment APIs

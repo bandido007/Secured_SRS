@@ -1,0 +1,46 @@
+<div class="container">
+    <div class="row">
+        <mat-toolbar color="primary" style="border-radius: 3px; margin-bottom: 10px;">
+            <span>Open EMR</span>
+            <span class="example-spacer"></span>
+            <button mat-icon-button (click)="logout()" class="example-icon favorite-icon"
+                aria-label="Example icon-button with heart icon">
+                <mat-icon>logout</mat-icon>
+            </button>
+            
+        </mat-toolbar>
+        
+    </div>        
+</div>
+
+    <router-outlet></router-outlet>
+
+
+<!-- <mat-drawer-container class="example-container" autosize>
+    <mat-drawer #drawer class="example-sidenav" mode="side" opened style="width: 200px;">
+        <mat-nav-list>
+            <div class="logo py-4">
+                <div fxLayout="row" fxLayoutAlign="center">
+                    <div class="round-avatar">
+                    </div>
+                </div>
+            </div>
+            <mat-divider></mat-divider>
+            <a mat-list-item routerLinkActive="list-item-active" routerLink="/admin/dashboard" class="text-white" z>
+                <mat-icon style="margin-right: 10px;">dashboard</mat-icon> Dashboard
+            </a>
+
+            <a mat-list-item class="text-white" routerLink="/admin/users">
+                <mat-icon style="margin-right: 10px;">person</mat-icon>Users
+            </a>
+        </mat-nav-list>
+
+    </mat-drawer>
+
+    <div class="example-sidenav-content">
+        <p>
+            
+        </p>
+        <router-outlet></router-outlet>
+    </div>
+</mat-drawer-container> -->

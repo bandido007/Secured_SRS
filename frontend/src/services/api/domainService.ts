@@ -112,6 +112,9 @@ export const domainService = {
     submit(data: CourseResultInput) {
       return apiClient.post<ApiResponse>(`${BASE_URL}/course-results`, data);
     },
+    update(gradeId: number, data: CourseResultInput) {
+      return apiClient.put<ApiResponse>(`${BASE_URL}/course-results/${gradeId}`, data);
+    },
     verify(gradeId: number) {
       return apiClient.post<ApiResponse>(`${BASE_URL}/course-results/${gradeId}/verify`);
     },
@@ -119,6 +122,11 @@ export const domainService = {
       return apiClient.get<PagedResponse<RecordTransaction>>(
         `${BASE_URL}/course-results/${gradeId}/audit-trail`,
         params
+      );
+    },
+    versionHistory(gradeId: number) {
+      return apiClient.get<ApiResponse<GradeVersionHistory>>(
+        `${BASE_URL}/course-results/${gradeId}/version-history`
       );
     },
   },

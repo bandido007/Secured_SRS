@@ -1,0 +1,24 @@
+<mat-nav-list>
+  <div class="logo py-4">
+    <div fxLayout="row" fxLayoutAlign="center">
+      <div class="round-avatar">
+      </div>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+  <!-- <a mat-list-item routerLinkActive="list-item-active" routerLink="/reception/dashboard" class="text-white" z>
+    <mat-icon style="margin-right: 10px;">dashboard</mat-icon> Dashboard
+  </a> -->
+  <h2 matSubheader class="mt-2 text-white">
+    <mat-icon style="margin-right: 10px;">view_list</mat-icon>Menu
+  </h2>
+  <a mat-list-item color="primary" class="text-white" routerLink="/reception/dashboard">
+    <mat-icon style="margin-right: 10px;">dashboard</mat-icon>Dashboard
+  </a>
+  <a mat-list-item color="primary" class="text-white" routerLink="/reception/addpatient">
+    <mat-icon style="margin-right: 10px;">people</mat-icon>Add patient
+  </a>
+  <a mat-list-item class="text-white" routerLink="/reception/findpatient">
+    <mat-icon style="margin-right: 10px;">search</mat-icon>Find patient
+  </a>
+</mat-nav-list>

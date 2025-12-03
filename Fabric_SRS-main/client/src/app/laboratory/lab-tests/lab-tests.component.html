@@ -1,0 +1,38 @@
+<mat-progress-bar mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
+<div class="card" *ngIf="showtable">
+    <div class="card-header">
+        Patient's Queue
+    </div>
+    <div class="card-body">
+        <table class="table  table-bordered table-striped  table-hover table-bordered row-border hover"  datatable >
+            <thead>
+                <tr class="text-primary">
+                    <th>pid</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Age</th>
+                    <th>Location</th>
+                    <th>payment</th>
+                    <th>send</th>
+                   
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr *ngFor="let patient of patients">
+                    <td>{{patient.id}}</td>
+                    <td>{{patient.fname}} {{patient.mname}} {{patient.lname}}</td>
+                    <td>{{patient.gender}}</td>
+                    <td>{{patient.dob}}</td>
+                    <td>{{patient.plocation}}</td>
+                    <td>Insurance</td>
+                    <td><a  mat-raised-button mat-button-primary color="primary" (click)="testDialog(patient.id, patient.visits[patient.visits.length-1])"  ><mat-icon>edit</mat-icon>Test</a></td> 
+                  
+                </tr>
+        
+
+            </tbody>
+         
+        </table>
+    </div>
+</div>

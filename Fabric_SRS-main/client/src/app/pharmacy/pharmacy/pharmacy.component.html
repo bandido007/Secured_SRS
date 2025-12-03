@@ -1,0 +1,28 @@
+<mat-drawer-container class="example-container" autosize>
+    <mat-drawer #drawer class="example-sidenav" mode="side" opened style="width: 200px">
+<app-pharmacy-sidenav></app-pharmacy-sidenav>
+    </mat-drawer>
+
+    <div class="example-sidenav-content">
+        <p>
+            <mat-toolbar>
+             <button  type="button" mat-button (click)="drawer.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+              <mat-icon>menu</mat-icon>
+            </button>
+            <span>Open EMR</span>
+            <span class="example-spacer"></span>
+            <button mat-icon-button (click)="logout()" class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
+              <mat-icon>logout</mat-icon>
+            </button>
+            <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
+             <mat-icon>people</mat-icon>
+           </button>
+          </mat-toolbar>
+          </p>
+          <p style="height: 1100px;">
+            <router-outlet></router-outlet>
+        </p>
+               
+      
+    </div>
+</mat-drawer-container>

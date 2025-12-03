@@ -1,0 +1,53 @@
+
+      <mat-card-title>
+         <mat-card-subtitle>
+          Lab Results
+         </mat-card-subtitle>
+      </mat-card-title>
+      <mat-card-content>
+          <form action="" class="form-horizontal">
+             <div class="row" *ngFor="let test of visit.examination.tests">
+                 <div class="col-3">
+                  <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Test name</mat-label>
+                      <input matInput placeholder="days" value="{{test.Key}}" readonly>
+                    </mat-form-field>
+                 </div>
+                 <div class="col-3">
+                  <button (click)="openResultImage(test.image)" mat-raised-button style="margin-top: 10px;">Result Image</button>
+
+                  <!-- <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Result Image</mat-label>
+                      <input matInput placeholder="days" value="image to be displayed here" readonly>
+                    </mat-form-field> -->
+                 </div>
+                 <div class="col-6">
+                  <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Feed back</mat-label>
+                      <input matInput placeholder="days" value="{{test.feedback}}" readonly>
+                    </mat-form-field>
+                 </div>
+               
+             </div>
+             <div class="row">
+              <div class="col-6">
+               <mat-form-field class="example-full-width" appearance="fill">
+                   <mat-label>Clinical trials</mat-label>
+                   <input matInput placeholder="days" value="{{visit.examination.clinicalDetails}}" readonly>
+                 </mat-form-field>
+              </div>
+              <div class="col-6">
+                  <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Lab tech comment</mat-label>
+                      <input matInput placeholder="days" value="{{visit.examination.labTestComment}}" readonly>
+                    </mat-form-field>
+                 </div>
+            
+          </div>
+          </form>
+
+      </mat-card-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

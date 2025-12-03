@@ -1,0 +1,88 @@
+<div style="width: 600px;">
+
+  <form #exam="ngForm" (ngSubmit)="examine(exam)">
+
+    <mat-card-title>Complaints</mat-card-title>
+
+    <mat-progress-bar mode="indeterminate" style="margin-bottom: 10px; margin-top: 10px;" *ngIf="isLoading"></mat-progress-bar>
+
+    <div class="row">
+
+      <div class="col-6 mt-2">
+        <mat-form-field class="example-full-width" appearance="fill">
+          <mat-label>Presenting complain</mat-label>
+          <input matInput #message maxlength="256" name="complain" ngModel placeholder="Ex. I need help with...">
+          <mat-hint align="end">{{message.value.length}} / 256</mat-hint>
+        </mat-form-field>
+      </div>
+      <div class="col-6 mt-2">
+        <mat-form-field class="example-full-width" appearance="fill">
+          <mat-label>History of the complain</mat-label>
+          <input matInput #message maxlength="256" name="historyComplain" ngModel placeholder="Ex. I need help with...">
+          <mat-hint align="end">{{message.value.length}} / 256</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    Recommended tests
+
+    <div class="row">
+      <div class="col-6 mt-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="RBS" ngModel id="RandomBloodSugar">
+          <label class="form-check-label" for="RandomBloodSugar">
+            Random Blood Sugar
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input"     type="checkbox" name="FBS" ngModel id="FastBloodSugar">
+          <label class="form-check-label" for="FastBloodSugar">
+            Fasting Blood Sure
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox"  ngModel name="RF" id="Liverfunction">
+          <label class="form-check-label" for="Liverfunction">
+            Liver function
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox"  ngModel name="PRBS" id="Peripheral">
+          <label class="form-check-label" for="Peripheral">
+            Peripheral blood smear
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox"   ngModel name="TF" id="Thyroid">
+          <label class="form-check-label" for="Thyroid">
+            Thyroid function
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox"  ngModel name="FBC" id="FullBoodCount">
+          <label class="form-check-label" for="FullBoodCount">
+            Full blood count
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" ngModel name="MRD" id="RapidDiagosticTest">
+          <label class="form-check-label" for="RapidDiagosticTest">
+            Rapid Diagnostic Test
+          </label>
+        </div>
+
+      </div>
+
+    </div>
+
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-raised-button color="primary" type="submit">
+    <span>Send to Lab</span> <mat-icon style="margin-left: 10px;">send</mat-icon>
+  </button>
+</mat-dialog-actions>
+  </form>
+
+
+</div>

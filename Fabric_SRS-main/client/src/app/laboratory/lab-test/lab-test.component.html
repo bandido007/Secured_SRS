@@ -1,0 +1,68 @@
+<div style="width: 600px;">
+    <mat-card-title>
+        <mat-card-subtitle>
+            Patient Test result
+        </mat-card-subtitle>
+    </mat-card-title>
+    <mat-card-content>
+        <mat-progress-bar mode="indeterminate" *ngIf="isLoading" style="margin-top: 10px; margin-bottom: 15px;"></mat-progress-bar>
+        <div style="margin-top: 10px;">
+            <form action="#" #testsForm="ngForm" (ngSubmit)="save(testsForm.value)">
+
+                <div class="row" *ngFor="let test of tests; let ind = index">
+                    <div class="col-4">
+                        <mat-form-field class="example-full-width" appearance="fill">
+                            <mat-label>Test name</mat-label>
+                            <input matInput placeholder="Ex. Pizza" value="{{test.Key}}" readonly>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-4 pt-3">
+                        <input type="file" (change)="selectFile($event, ind)" style="width: 100%;">
+                        <!-- <mat-form-field class="columns" appearance="fill">
+                            <mat-label *ngIf="selectedFiles; else newFile">{{selectedFiles[ind].item(0)?.name}}</mat-label>
+                            <ng-template #newFile>
+                                <mat-label>Choose file</mat-label>
+                            </ng-template>
+                            <input matInput disabled>
+                            <button mat-icon-button matSuffix (click)="fileInput.click()">
+                                <mat-icon>folder</mat-icon>
+                            </button>
+                            <input hidden (change)="selectFile($event, ind)" #fileInput type="file" id="file">
+                        </mat-form-field> -->
+                    </div>
+                    <div class="col-4">
+                        <mat-form-field class="example-full-width" appearance="fill">
+                            <mat-label>Feedback</mat-label>
+                            <input matInput placeholder="feed back from technician" [ngModel]="feedback[ind]" name="p"
+                                (ngModelChange)="changeUpdate($event, ind)">
+                        </mat-form-field>
+                    </div>
+
+
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <mat-form-field class="example-full-width" appearance="fill">
+                            <mat-label>Clinical details</mat-label>
+                            <input matInput name="clinicalDetails" ngModel>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-6">
+                        <mat-form-field class="example-full-width" appearance="fill">
+                            <mat-label>Lab tech comment</mat-label>
+                            <input matInput name="labTechComment" ngModel>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div fxLayout="row" fxLayoutAlign="end">
+                    <button mat-raised-button color="primary">
+                        <mat-icon style="margin-right: 5px;">save</mat-icon> Save
+
+                    </button>
+
+                </div>
+            </form>
+        </div>
+    </mat-card-content>
+</div>

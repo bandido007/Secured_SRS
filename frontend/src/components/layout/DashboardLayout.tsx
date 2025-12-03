@@ -43,14 +43,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { to: '/admin/courses', label: 'Courses', icon: BookOpen },
     { to: '/admin/enrollments', label: 'Enrollments', icon: Shield },
     { to: '/admin/grades', label: 'Grades', icon: FileText },
-    // { to: '/admin/transcripts', label: 'Transcripts', icon: GraduationCap },
+    { to: '/admin/transcripts', label: 'Transcripts', icon: GraduationCap },
   ];
 
   const lecturerLinks: NavLink[] = [
     { to: '/lecturer', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/lecturer/courses', label: 'My Courses', icon: BookOpen },
     { to: '/lecturer/grades', label: 'Grade Submission', icon: FileText },
-    // { to: '/lecturer/verify', label: 'Verify Grades', icon: Shield },
+    { to: '/lecturer/verify', label: 'Verify Grades', icon: Shield },
   ];
 
   const studentLinks: NavLink[] = [

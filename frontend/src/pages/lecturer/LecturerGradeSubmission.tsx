@@ -54,9 +54,11 @@ export function LecturerGradeSubmission() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [gradeForm, setGradeForm] = useState<GradeFormState>(DEFAULT_GRADE_FORM);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null);
   const [selectedResult, setSelectedResult] = useState<CourseResult | null>(null);
+  const [resultToEdit, setResultToEdit] = useState<CourseResult | null>(null);
 
 
   const openVerifyModal = (result: CourseResult) => {
@@ -70,6 +72,21 @@ export function LecturerGradeSubmission() {
     setIsGradeModalOpen(true);
   };
 
+  const openEditModal = (result: CourseResult) => {
+    setResultToEdit(result);
+    // Pre-populate form with existing values
+    setGradeForm({
+      gradeType: result.gradeType,
+      numericGrade: result.numericGrade?.toString() ?? '',
+      letterGrade: result.letterGrade ?? '',
+      courseWorkGrade: result.courseWorkGrade?.toString() ?? '',
+      examGrade: result.examGrade?.toString() ?? '',
+      remarks: result.remarks ?? '',
+      comments: '',
+    });
+    setIsEditModalOpen(true);
+  };
+
   const closeGradeModal = () => {
     setSelectedEnrollment(null);
     setIsGradeModalOpen(false);
@@ -78,6 +95,12 @@ export function LecturerGradeSubmission() {
   const closeVerifyModal = () => {
     setSelectedResult(null);
     setIsVerifyModalOpen(false);
+  };
+
+  const closeEditModal = () => {
+    setResultToEdit(null);
+    setIsEditModalOpen(false);
+    setGradeForm(DEFAULT_GRADE_FORM);
   };
 
   const { lecturer, query: lecturerQuery } = useCurrentLecturer();
@@ -157,6 +180,41 @@ export function LecturerGradeSubmission() {
     },
     onError: (error) => {
       setFeedback({ type: 'error', message: getErrorMessage(error, 'Failed to submit grade') });
+    },
+  });
+
+  const updateGrade = useMutation({
+    mutationFn: async () => {
+      if (!resultToEdit) {
+        throw new Error('No grade selected for update.');
+      }
+
+      const payload: CourseResultInput = {
+        enrollmentId: resultToEdit.enrollmentId,
+        gradeType: gradeForm.gradeType,
+        numericGrade:
+          gradeForm.gradeType === 'NUMERIC' && gradeForm.numericGrade
+            ? Number(gradeForm.numericGrade)
+            : undefined,
+        letterGrade: gradeForm.gradeType === 'LETTER' ? gradeForm.letterGrade || undefined : undefined,
+        courseWorkGrade: gradeForm.courseWorkGrade ? Number(gradeForm.courseWorkGrade) : undefined,
+        examGrade: gradeForm.examGrade ? Number(gradeForm.examGrade) : undefined,
+        remarks: gradeForm.remarks || undefined,
+        comments: gradeForm.comments || undefined,
+      };
+
+      const { data } = await domainService.courseResults.update(resultToEdit.id, payload);
+      return data;
+    },
+    onSuccess: (data) => {
+      setFeedback({ type: 'success', message: data?.response.message ?? 'Grade updated successfully' });
+      closeEditModal();
+      queryClient.invalidateQueries({ queryKey: [RESULTS_QUERY_KEY] }).catch((error) => {
+        console.error('Failed to refresh lecturer results', error);
+      });
+    },
+    onError: (error) => {
+      setFeedback({ type: 'error', message: getErrorMessage(error, 'Failed to update grade') });
     },
   });
 
@@ -421,22 +479,29 @@ export function LecturerGradeSubmission() {
                       </TableCell>
                       <TableCell>{formatDateTime(result.submittedAt)}</TableCell>
                       <TableCell className="flex justify-end gap-2">
+                        {result.status === 'PENDING' && !result.isVerified && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openEditModal(result)}
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.location.href = `/grade-history/${result.id}`}
+                        >
+                          View History
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => openVerifyModal(result)}
                         >
-                          {result.isVerified ? 'Verified' : 'Verify'}
+                          Details
                         </Button>
-
-                        {/* <Button
-												variant="outline"
-												size="sm"
-												onClick={() => verifyGrade.mutate(result.id)}
-												disabled={verifyGrade.isPending || result.isVerified}
-											>
-												{result.isVerified ? 'Verified' : 'Verify'}
-											</Button> */}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -493,15 +558,9 @@ export function LecturerGradeSubmission() {
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              {/* <Button variant="outline" onClick={closeModal}>
-								Cancel
-							</Button> */}
-              {/* <Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
-								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Blockchain'}
+              <Button variant="outline" onClick={closeVerifyModal}>
+								Close
 							</Button>
-							<Button onClick={handleVerifyConfirm} disabled={verifyGrade.isPending}>
-								{verifyGrade.isPending ? 'Verifying...' : 'Accept from Database'}
-							</Button> */}
             </div>
 
           </Modal>
@@ -644,6 +703,162 @@ export function LecturerGradeSubmission() {
                   setGradeForm((prev) => ({ ...prev, comments: event.target.value }))
                 }
                 placeholder="Comments visible to administrators"
+                rows={3}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit Grade Modal */}
+      <Modal
+        title="Update grade"
+        description={resultToEdit ? `Modify results for ${resultToEdit.courseCode} - ${resultToEdit.studentName}` : 'Select a grade to update.'}
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        footer={
+          <>
+            <Button variant="outline" onClick={closeEditModal}>
+              Cancel
+            </Button>
+            <Button onClick={() => updateGrade.mutate()} disabled={updateGrade.isPending || !resultToEdit}>
+              {updateGrade.isPending ? 'Updating...' : 'Update Grade'}
+            </Button>
+          </>
+        }
+      >
+        {!resultToEdit ? (
+          <EmptyState
+            title="No grade selected"
+            description="Choose a grade from the table to update."
+          />
+        ) : (
+          <div className="grid gap-4">
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+              <strong>Note:</strong> Updating this grade will reset its verification status to PENDING and create a new blockchain record.
+            </div>
+            
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700">Student</label>
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <div className="font-medium">{resultToEdit.studentName}</div>
+                <div className="text-xs text-gray-500">{resultToEdit.studentNumber}</div>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700">Course</label>
+              <div className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <div className="font-medium">{resultToEdit.courseName}</div>
+                <div className="text-xs text-gray-500">{resultToEdit.courseCode} • {resultToEdit.semester} {resultToEdit.academicYear}</div>
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="edit-grade-type">
+                Grade type
+              </label>
+              <select
+                id="edit-grade-type"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                value={gradeForm.gradeType}
+                onChange={(event) => setGradeForm((prev) => ({ ...prev, gradeType: event.target.value as CourseResultInput['gradeType'] }))}
+              >
+                {GRADE_TYPE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {gradeForm.gradeType === 'NUMERIC' ? (
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-numeric-grade">
+                  Numeric grade
+                </label>
+                <Input
+                  id="edit-numeric-grade"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={gradeForm.numericGrade}
+                  onChange={(event) => setGradeForm((prev) => ({ ...prev, numericGrade: event.target.value }))}
+                  required
+                />
+              </div>
+            ) : null}
+
+            {gradeForm.gradeType === 'LETTER' ? (
+              <div className="grid gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-letter-grade">
+                  Letter grade
+                </label>
+                <Input
+                  id="edit-letter-grade"
+                  value={gradeForm.letterGrade}
+                  onChange={(event) => setGradeForm((prev) => ({ ...prev, letterGrade: event.target.value }))}
+                  required
+                />
+              </div>
+            ) : null}
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="edit-coursework-grade">
+                Coursework grade (optional)
+              </label>
+              <Input
+                id="edit-coursework-grade"
+                type="number"
+                min="0"
+                max="100"
+                value={gradeForm.courseWorkGrade}
+                onChange={(event) => setGradeForm((prev) => ({ ...prev, courseWorkGrade: event.target.value }))}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="edit-exam-grade">
+                Exam grade (optional)
+              </label>
+              <Input
+                id="edit-exam-grade"
+                type="number"
+                min="0"
+                max="100"
+                value={gradeForm.examGrade}
+                onChange={(event) => setGradeForm((prev) => ({ ...prev, examGrade: event.target.value }))}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="edit-remarks">
+                Remarks (optional)
+              </label>
+              <textarea
+                id="edit-remarks"
+                className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                value={gradeForm.remarks}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                  setGradeForm((prev) => ({ ...prev, remarks: event.target.value }))
+                }
+                placeholder="Provide context for this grade"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="edit-comments">
+                Update comments (optional)
+              </label>
+              <textarea
+                id="edit-comments"
+                className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                value={gradeForm.comments}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                  setGradeForm((prev) => ({ ...prev, comments: event.target.value }))
+                }
+                placeholder="Reason for updating this grade"
                 rows={3}
               />
             </div>

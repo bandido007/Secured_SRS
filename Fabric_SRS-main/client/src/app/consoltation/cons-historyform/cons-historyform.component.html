@@ -1,0 +1,204 @@
+<mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+<div class="container-fluid">
+    <mat-card>
+        <mat-card-content>
+            <div class="row">
+                <div class="col-md-6">
+                    Patient's Details
+                    <mat-list>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">First Name: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.fname}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Middle Name: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.mname}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Last Name: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.lname}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Gender: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.gender}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Age: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.dob}} years</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Phone: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.phone}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Location: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.plocation}}</span>
+                        </mat-list-item>
+                    </mat-list>
+
+                </div>
+                <div class="col-md-6">
+                    <div class="pt-4 pb-2">
+                        Next of kin Details
+                    </div>
+
+                    <mat-list>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Name: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.kinName}}</span>
+                    </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Phone: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.kinPhone}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Location: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.kinPlace}}</span>
+                        </mat-list-item>
+                        <mat-list-item style="font-size: 15px; height: 30px;">
+                            <span class="font-bold">Relationship: </span> <span *ngIf="!isLoading"
+                                style="margin-left: 20px;"> {{patient.relationship}}</span>
+                        </mat-list-item>
+                    </mat-list>
+
+                </div>
+            </div>
+
+        </mat-card-content>
+    </mat-card>
+    <div class="row pt-4 font-bold">
+        <div class="col">
+            Medical History
+        </div>
+
+    </div>
+    <div class="row pt-4 font-bold"  >
+        <div class="col-md-12">
+            <div class="example-action-buttons">
+                <button mat-button (click)="accordion.openAll()">Show</button>
+                <button mat-button (click)="accordion.closeAll()">Hide</button>
+            </div>
+            <mat-accordion class="example-headers-align" multi *ngFor="let visit of visits; let i = index;" style="width: 100%;">
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title style="font-weight: bold;">
+                            {{i+1}}. Visitation
+                        </mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <mat-list role="list">
+                        <mat-card>
+                            <mat-card-content>
+                                <mat-list-item style="font-size: 15px; height: 30px;"><span class="font-bold">Doctor
+                                        attended:</span>
+                                    <span style="margin-left: 20px;"> {{visit.doctor}}</span>
+                                </mat-list-item>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold">Hospital Name</span>
+                                    <span style="margin-left: 20px;"> {{visit.org}}</span>
+                                </mat-list-item>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold">Payment Status</span>
+                                    <span style="margin-left: 20px;"> {{visit.paymentStatus}}</span>
+                                </mat-list-item>
+                            </mat-card-content>
+                        </mat-card>
+
+
+                        <mat-card class="mt-4">
+                            <mat-card-content>
+                                <h2>Examination Details</h2>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold"> Clinical Details:</span>
+                                    <span style="margin-left: 20px;"> {{visit.examination.clinicalDetails}}</span>
+
+                                </mat-list-item>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold"> Complain:</span>
+                                    <span style="margin-left: 20px;">{{visit.examination.complain}}</span>
+                                </mat-list-item>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold"> History complain:</span>
+                                    <span style="margin-left: 20px;">{{visit.examination.complain}}</span>
+
+                                </mat-list-item>
+                                <mat-list-item style="font-size: 15px; height: 30px;" role="listitem" role="listitem">
+                                    <span class="font-bold"> Lab Test Comment:</span>
+                                    <span style="margin-left: 20px;">{{visit.examination.labTestComment}}</span>
+
+                                </mat-list-item>
+
+                            </mat-card-content>
+                        </mat-card>
+
+
+                        <mat-card class="mt-4">
+                            <mat-card-content>
+                                <h2>Lab Result</h2>
+                                <div *ngFor="let test of visit.examination.tests">
+                                    <div class="row"  style="height: 30px;">
+                                        <div class="col-6">
+                                            <span class="font-bold" style="margin-left:20px ;">Test Name:</span>
+                                            {{test.Key}}
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="font-bold">Feedback:</span> {{test.feedback}}
+                                        </div>
+                                    </div>
+                                    <!-- <mat-list role="list">
+                                        <mat-list-item role="listitem"
+                                            style="font-size: 15px; height: 30px; padding-right:20px;"> </mat-list-item>
+                                    </mat-list> -->
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+
+                        <mat-card class="mt-4">
+                            <mat-card-content>
+                                <h2>Prescription Details</h2>
+                                <div *ngFor="let pr of visit.prescription">
+                                    <mat-list role="list">
+                                        <mat-list-item  style="font-size: 15px; height: 30px;" role="listitem">
+                                            <span class="font-bold"> Medicine:</span>
+                                            <span style="margin-left: 20px;">{{pr.medicine}}</span>
+                                            
+                                       </mat-list-item>
+                                        <mat-list-item  style="font-size: 15px; height: 30px;" role="listitem">
+                                            <span class="font-bold"> Quantity:</span>
+                                            <span style="margin-left: 20px;">{{pr.amount}}</span>
+                                         
+                                        </mat-list-item>
+                                      
+                                    
+                                        <mat-list-item  style="font-size: 15px; height: 30px;" role="listitem">
+                                            <span class="font-bold"> Usage per
+                                                day:</span>
+                                            <span style="margin-left: 20px;">{{pr.timesaday}}</span>
+                                        </mat-list-item>
+
+
+                                        <mat-list-item  style="font-size: 15px; height: 30px;" role="listitem"> 
+                                            <span class="font-bold"> Cost:</span>
+                                            <span style="margin-left: 20px;">{{pr.cost}}</span>
+                                        </mat-list-item>
+                                       
+                                            
+                    
+                                    </mat-list>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+
+
+
+                    </mat-list>
+
+                </mat-expansion-panel>
+
+
+            </mat-accordion>
+
+        </div>
+
+    </div>
+</div>

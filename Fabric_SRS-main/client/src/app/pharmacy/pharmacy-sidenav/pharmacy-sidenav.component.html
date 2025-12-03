@@ -1,0 +1,15 @@
+<mat-nav-list >
+    <div class="logo py-4">
+      <div fxLayout="row" fxLayoutAlign="center">
+        <div class="round-avatar">
+        </div>
+      </div>    </div>
+    <mat-divider></mat-divider>
+    <a mat-list-item routerLinkActive="list-item-active" class="text-white" z>
+      <mat-icon style="margin-right: 10px;">dashboard</mat-icon> Dashboard
+    </a>
+    <!-- <h2 matSubheader class="mt-2 text-white">	<mat-icon style="margin-right: 10px;">view_list</mat-icon>Menu</h2> -->
+    <a mat-list-item  class="text-white" routerLink="/pharmacy/givedrugs"><mat-icon style="margin-right: 10px;">people</mat-icon>Give drugs</a>
+    <a mat-list-item  class="text-white" routerLink="/pharmacy/adddrugs"><mat-icon style="margin-right: 10px;">add</mat-icon>Add drugs</a>
+  </mat-nav-list>
+  <!-- routerLink="/lab/dashboard" -->

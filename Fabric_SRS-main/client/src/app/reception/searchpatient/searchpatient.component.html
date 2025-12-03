@@ -1,0 +1,47 @@
+    <div class="row">
+        <div class="col-12">
+            <mat-progress-bar *ngIf="showProgressBar" mode="indeterminate"></mat-progress-bar>
+            <mat-card *ngIf="showDataTable">
+                <mat-card-title>
+                    <mat-card-subtitle>
+                        Patient Details
+                    </mat-card-subtitle>
+                </mat-card-title>
+                <mat-card-content>
+     <table class="table  table-bordered table-striped  table-hover table-bordered row-border hover" datatable>
+                    <thead>
+                        <tr class=" text-white" style="background-color: rgb(63,81,181);">
+                            <th>pid</th>
+                            <th>Name</th>
+                            <th>Gender</th>
+                            <th>Age</th>
+                            <th>Location</th>
+                            <th>Consultation</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let patient of patients">
+                            <td>{{patient.id}}</td>
+                            <td>{{patient.fname}} {{patient.mname}} {{ patient.lname}}</td>
+                            <td>{{patient.gender}}</td>
+                            <td>{{patient.dob}}</td>
+                            <td>{{patient.plocation}}</td>
+                            <td>
+                                <button mat-raised-button color="primary"(click)="openDialog(patient.id)">
+                                    Send
+                                </button></td>
+
+                        </tr>
+
+
+                    </tbody>
+
+                </table>
+                </mat-card-content>
+            </mat-card>
+            
+
+        </div>
+
+    </div>

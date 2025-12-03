@@ -1,0 +1,186 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-9">
+            <mat-card>
+                <mat-card-title>
+                    <mat-card-subtitle style="font-weight: 500;font-size: large; color: black;">
+                        Payment Details
+                    </mat-card-subtitle>
+                </mat-card-title>
+                <mat-card-content>
+                    <form action="">
+                        <span style="font-weight: 500; color: black;">Patient</span>
+                        <!-- <hr> -->
+                        <div class="row">
+                            <div class="col-md-2">
+                                <mat-list>
+                                    <mat-list-item class="small-item">First Name:</mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">Middle Name:</mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">Last Name:</mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">Payment status:</mat-list-item>
+                                </mat-list>
+                            </div>
+                            <div class="col">
+                                <mat-list>
+                                    <mat-list-item class="small-item">
+                                        {{patient_data.fname}}
+                                    </mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">
+                                        {{patient_data.mname}}
+                                    </mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">
+                                        {{patient_data.lname}}
+                                    </mat-list-item>
+                                </mat-list>
+                                <mat-list>
+                                    <mat-list-item class="small-item">
+                                        <mat-chip-list>
+                                            <mat-chip style="background-color: green; color: white;"
+                                                *ngIf="payment_status == 'Paid'; else notPaid">{{payment_status}}
+                                            </mat-chip>
+                                            <ng-template #notPaid>
+                                                <mat-chip style="background-color: red; color: white;">
+                                                    {{payment_status}}</mat-chip>
+                                            </ng-template>
+                                        </mat-chip-list>
+                                    </mat-list-item>
+                                </mat-list>
+                            </div>
+                        </div>
+                        <!-- <div class="row mt-3">
+                            <div class="col-4">
+                                <mat-form-field class="example-full-width" appearance="fill">
+                                    <mat-label>First Name</mat-label>
+                                    <input matInput value="{{patient_data.fname}}" readonly>
+                                </mat-form-field>
+
+                            </div>
+                            <div class="col-4">
+                                <mat-form-field class="example-full-width" appearance="fill">
+                                    <mat-label>Middle Name</mat-label>
+                                    <input matInput value="{{patient_data.mname}}" readonly>
+                                </mat-form-field>
+
+                            </div>
+                            <div class="col-4">
+                                <mat-form-field class="example-full-width" appearance="fill">
+                                    <mat-label>Last Name</mat-label>
+                                    <input matInput value="{{patient_data.lname}}" readonly>
+                                </mat-form-field>
+
+                            </div>
+                        </div> -->
+
+                        <div style="margin-top: 20px">
+                            <span style="font-weight: 500; color: black;;">Medical Prescription</span>
+                        </div>
+
+                        <div class="row mt-3">
+
+                            <div class="col-6">
+                                <span style="font-weight: 500; color: black;">Cost</span>
+                                <hr>
+                                <mat-list role="list">
+                                    <mat-list-item role="listitem" style="font-size: 15px; height: 30px;"
+                                        *ngFor="let medicine of medicines">
+                                        {{medicine.amount}} X {{medicine.price}}Tsh</mat-list-item>
+                                </mat-list>
+
+                            </div>
+                            <div class="col-6">
+                                <span style="font-weight: 500; color: black;">Prescription</span>
+                                <hr>
+                                <mat-list role="list">
+                                    <mat-list-item role="listitem" style="font-size: 15px; height: 30px;"
+                                        *ngFor="let medicine of medicines">
+                                        {{medicine.medicine}} (1X{{medicine.timesaday}})</mat-list-item>
+                                </mat-list>
+
+                            </div>
+                        </div>
+                        <hr>
+                        <div fxLayout="row" class="mt-3">
+                            <span>Total cost</span><span>&nbsp;= Tshs.<span class="font-bold">{{total}}/=</span></span>
+                        </div>
+
+
+                    </form>
+
+                    <div fxLayoutAlign="column" fxLayoutAlign="end">
+                        <small>Change payment status*</small>
+                    </div>
+                    <mat-card-actions align="end">
+                        <div *ngIf="payment_status != 'Paid'; else paidButton">
+                            <button *ngIf="!isLoading; else loading" mat-raised-button color="primary"
+                                style="margin-right: 10px;" (click)="printReceipt()">
+                                <mat-icon style="margin-right: 10px;">paid</mat-icon>
+                                <span>Paid</span>
+                            </button>
+                            <ng-template #loading>
+                                <button mat-raised-button disabled="true" color="primary">
+                                    <div fxLayout="row">
+                                        <mat-spinner mode="indeterminate" diameter="25"
+                                            style="margin-top: 5px; margin-right: 5px;"></mat-spinner>
+                                        <span>Updating...</span>
+                                    </div>
+                                </button>
+                            </ng-template>
+                        </div>
+                        <ng-template #paidButton>
+                            <button disabled="true" mat-raised-button color="primary" style="margin-right: 10px;"
+                                (click)="printReceipt()">
+                                <mat-icon style="margin-right: 10px;">paid</mat-icon>
+                                <span>Paid</span>
+                            </button>
+                        </ng-template>
+
+                    </mat-card-actions>
+
+                </mat-card-content>
+            </mat-card>
+
+
+        </div>
+        <div class="col-3">
+            <mat-card>
+                <mat-card-subtitle>Action</mat-card-subtitle>
+                <mat-card-content>
+                    <div *ngIf="payment_status == 'Paid'; else disabledSend">
+                        <button mat-raised-button color="primary" (click)="sendToPharmacy()"
+                            *ngIf="!isPharmacyLoading; else ploading">
+                            <mat-icon style="margin-right: 10px;">medication</mat-icon>
+                            <span>Send to Pharmacy</span>
+                        </button>
+
+                        <ng-template #ploading>
+                            <button mat-raised-button disabled="true">
+                                <div fxLayout="row">
+                                    <mat-spinner mode="indeterminate" diameter="25"
+                                        style="margin-top: 5px; margin-right: 5px;"></mat-spinner>
+                                    <span>Sending...</span>
+                                </div>
+                            </button>
+                        </ng-template>
+                    </div>
+
+                    <ng-template #disabledSend>
+                        <button mat-raised-button disabled="true">
+                            <mat-icon style="margin-right: 10px;">medication</mat-icon>
+                            <span>Send to Pharmacy</span>
+                        </button>
+                    </ng-template>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

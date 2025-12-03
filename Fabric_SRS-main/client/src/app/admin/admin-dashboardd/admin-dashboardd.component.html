@@ -1,0 +1,83 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <mat-card>
+                <div fxLayout="row" fxLayoutAlign="space-between">
+                    <mat-icon style="font-size: 70px;">person_outline</mat-icon>
+                    <div>
+                        <mat-card-subtitle fxLayout="row" fxLayoutAlign="end">Total patients</mat-card-subtitle>
+                        <mat-card-title fxLayout="row" fxLayoutAlign="end" style="font-size: 40px;">{{patients.length}}</mat-card-title>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+        <div class="col-md-4">
+            <mat-card>
+                <div fxLayout="row" fxLayoutAlign="space-between">
+                    <mat-icon style="font-size: 70px;">local_hospital</mat-icon>
+                    <div>
+                        <mat-card-subtitle fxLayout="row" fxLayoutAlign="end"> Organizations</mat-card-subtitle>
+                        <mat-card-title fxLayout="row" fxLayoutAlign="end" style="font-size: 40px;">{{orgs.length}}</mat-card-title>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+        <div class="col-md-4">
+            <mat-card>
+                <div fxLayout="row" fxLayoutAlign="space-between">
+                    <mat-icon style="font-size: 70px;">calendar_view_day</mat-icon>
+                    <div>
+                        <mat-card-subtitle fxLayout="row" fxLayoutAlign="end">Peers</mat-card-subtitle>
+                        <mat-card-title fxLayout="row" fxLayoutAlign="end" style="font-size: 40px;">{{2}}</mat-card-title>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col mt-4">
+            <button mat-raised-button color="primary" (click)="registerUser()">
+                <mat-icon>person_add</mat-icon><span style="margin-left: 10px;">Register staff</span>
+            </button>
+            <!-- <button mat-raised-button style="margin-left: 10px; background-color: red; color: white; font-weight: bold;">
+                <mat-icon>block</mat-icon><span style="margin-left: 10px;">Revoke</span>
+            </button> -->
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div style="display: block; height: 100%; width: 100%;">
+                <mat-card>
+                    <div class="bar" [chart]="barChart"></div>
+                </mat-card>
+              </div>
+        </div>
+        <div class="col-md-6">
+            <mat-card>
+                <mat-card-header>
+                   <mat-card-title>Active Patients</mat-card-title>
+                </mat-card-header>
+                <span></span>
+                <mat-card-content>
+                    <table class="table  table-bordered table-striped  table-hover table-bordered row-border hover"  datatable >
+                        <thead>
+                            <tr class="text-primary">
+                                <th>Username</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let user of users">
+                                <td>{{user.username}}</td>
+                                <td>{{user.type}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </mat-card-content>
+               
+            </mat-card>
+        </div>
+    </div>
+</div>

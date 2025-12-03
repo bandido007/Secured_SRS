@@ -1,0 +1,32 @@
+<div style="width: 350px;">
+    <h2>Register user</h2>
+    <form #regUser="ngForm" (ngSubmit)="registerUser(regUser.value)">
+        <mat-form-field class="w-100" appearance="outline">
+            <mat-label>Username</mat-label>
+            <input type="text" matInput placeholder="Username" ngModel name="username">
+        </mat-form-field>
+        <mat-form-field class="w-100" appearance="outline">
+            <mat-label>Password</mat-label>
+            <input type="password" matInput placeholder="Password" ngModel name="password">
+        </mat-form-field>
+        <mat-form-field class="w-100" appearance="outline">
+            <mat-label>Confirm Password</mat-label>
+            <input type="password" matInput placeholder="Password" ngModel name="cpassword">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+            <mat-label>User Type
+            </mat-label>
+            <mat-select disableRipple ngModel name="type">
+              <mat-option value="reception">Receptionist</mat-option>
+              <mat-option value="consultation">Doctor</mat-option>
+              <mat-option value="lab">Lab Technician</mat-option>
+              <mat-option value="accountant">Accountant</mat-option>
+              <mat-option value="pharmacy">Pharmacist</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" class="w-100">
+            <mat-icon>person_add</mat-icon> <span>Register</span>
+          </button>
+    </form>
+</div>

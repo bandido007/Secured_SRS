@@ -1,0 +1,83 @@
+<div class="container">
+  <mat-progress-bar mode="indeterminate" *ngIf="isLoading"></mat-progress-bar>
+  <mat-dialog-content class="mat-typography">
+    <mat-card>
+      <mat-card-title>
+        <mat-card-subtitle>
+          Add Drug
+        </mat-card-subtitle>
+      </mat-card-title>
+      <mat-card-content>
+        <form action="#" #addDrugForm="ngForm" (ngSubmit)="addDrug(addDrugForm)" class="form-horizontal">
+          <div class="row">
+            <div class="col-6">
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Generic name</mat-label>
+                <input matInput placeholder="paracetamol" value="sample name" ngModel name="gname">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Strength</mat-label>
+                <input matInput placeholder="250mg" value="250 mg" ngModel name="strength">
+              </mat-form-field>
+            
+              <mat-form-field appearance="fill">
+                <mat-label>Medication drugs</mat-label>
+                <mat-select ngModel name="drugtype">
+                 
+                  <mat-option value="Tablet">Tablet</mat-option>
+                  <mat-option value="Syringe">Syringe</mat-option>
+                  <mat-option value="Bottled">Bottled</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Quantity</mat-label>
+                <input matInput placeholder="3000" value="250" ngModel name="quantity">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Purchased price</mat-label>
+                <input matInput placeholder="25000" value="2500" ngModel name="price">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Per maker</mat-label>
+                <input matInput placeholder="1.5g" value="1.5" ngModel name="permaker">
+              </mat-form-field>
+            </div>
+            <div class="col-6">
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Vendor name</mat-label>
+                <input matInput placeholder="MahatPharmaceutical" value="company name" ngModel name="vendor">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Location</mat-label>
+                <input matInput placeholder="Mumbai" value="sample feed" ngModel name="location">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Contacts</mat-label>
+                <input matInput placeholder="07837373790" value="sample feed" ngModel name="contacts">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>email</mat-label>
+                <input matInput placeholder="sample@gmail.com" value="sample feed" ngModel name="email">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Manufacture date</mat-label>
+                <input matInput placeholder="23/3/2020" value="sample feed" ngModel name="manufactureddate">
+              </mat-form-field>
+              <mat-form-field class="example-full-width" appearance="fill">
+                <mat-label>Expire date</mat-label>
+                <input matInput placeholder="23/3/2023" value="sample feed" ngModel name="expiredate">
+              </mat-form-field>
+            </div>
+            <button mat-raised-button color="primary">
+              <mat-icon style="margin-right: 10px;">save</mat-icon> <span>Save</span>
+            </button>
+          </div>
+
+        </form>
+
+      </mat-card-content>
+    </mat-card>
+  </mat-dialog-content>
+
+
+</div>

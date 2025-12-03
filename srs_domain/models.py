@@ -413,6 +413,7 @@ class RecordTransaction(BaseModel):
 
     class TransactionType(models.TextChoices):
         CREATE = 'CREATE', 'Record Created'
+        UPDATE = 'UPDATE', 'Record Updated'
         VERIFY = 'VERIFY', 'Record Verified'
         ACCESS = 'ACCESS', 'Record Accessed'
 
@@ -438,13 +439,19 @@ class RecordTransaction(BaseModel):
         max_length=256,
         help_text="Hash value stored on blockchain"
     )
+    previous_hash = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True,
+        help_text="Previous blockchain hash (for linking versions)"
+    )
     timestamp = models.DateTimeField(
         auto_now_add=True
     )
     metadata = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Additional transaction details"
+        help_text="Additional transaction details including change tracking"
     )
 
     class Meta:

@@ -1,0 +1,28 @@
+{
+    "name": "Sec Wallet",
+    "version": "1.0",
+    "manifest_version": 3,
+    "description": "Secured blockchain wallet",
+    "background": {
+        "service_worker": "background.js",
+        "persistence": true
+    },
+    "permissions": ["storage", "activeTab", "scripting", "webRequest", "tabs", "webRequestBlocking"],
+    "host_permissions": ["https://www.google.com/*"],
+    "action":{
+        "default_popup":"views/home.htm",
+        "default_icon": {
+            "16":"/images/16.jpg",
+            "32":"/images/32.jpg",
+            "48":"/images/48.jpg",
+            "128":"/images/128.jpg"
+        }
+    },
+    "icons": {
+        "16":"/images/16.jpg",
+        "32":"/images/32.jpg",
+        "48":"/images/48.jpg",
+        "128":"/images/128.jpg"
+    }
+    
+}

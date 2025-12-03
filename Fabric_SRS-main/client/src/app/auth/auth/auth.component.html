@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <p>
+        <mat-toolbar>
+
+          <span><button mat-button>Open EMR</button></span>
+        </mat-toolbar>
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-4"></div>
+    <div class="col-4">
+
+      <mat-card class="example-card mt-5">
+        <div fxLayout="row" fxLayoutAlign="center" style="width: 100%;" class="h4">
+          User Enrollment
+        </div>
+        <mat-card-content>
+          <form #form="ngForm" action="" (ngSubmit)="login(form)">
+            <p>
+              <mat-form-field appearance="outline">
+
+                <input ngModel name="username" matInput placeholder="Enter username">
+                <mat-icon matSuffix>person</mat-icon>
+
+              </mat-form-field>
+            </p>
+            <p>
+              <mat-form-field appearance="outline">
+
+                <input ngModel name="password" matInput placeholder="Enter password" type="password">
+                <mat-icon matSuffix>lock</mat-icon>
+
+              </mat-form-field>
+            </p>
+            <p>
+              <button mat-raised-button color="primary" class="w-100">Enroll</button>
+            </p>
+
+          </form>
+        </mat-card-content>
+        <mat-divider inset></mat-divider>
+
+        <mat-card-footer>
+
+          <div fxLayout="row" fxLayoutAlign="center" class="p-3">
+            <button mat-button>
+              <a href="#">Login using wallet</a>
+            </button>
+          </div>
+
+        </mat-card-footer>
+      </mat-card>
+    </div>
+    <div class="col-4"></div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+
+<div fxLayout="column" style="width: 400px;">
+  <mat-card-title>Payment Method</mat-card-title>
+  
+  <mat-progress-bar mode="indeterminate" style="margin-bottom: 10px; margin-top: 10px;" *ngIf="isLoading"></mat-progress-bar>
+
+  <div fxLayout="row" fxLayoutAlign="space-between" class="mt-2 mb-2">
+    <button mat-raised-button color="primary" class="w-50 m-2" (click)="toConsultation('Insurance')">Insurance</button>
+    <button mat-stroked-button class="w-50 m-2" (click)="toConsultation('Cash')">Cash</button>
+  </div>
+
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>Close</button>
+</div>
+</div>

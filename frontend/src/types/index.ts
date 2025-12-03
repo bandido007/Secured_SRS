@@ -220,14 +220,14 @@ export interface BlockchainData {
   "courseWorkGrade": string;
   "examGrade": string;
   "remarks": string | null;
-  // studentName: string;
-  // courseCode: string;
-  // academicYear: string;
-  // semester: string;
-  // gradeType: string;
-  // courseWorkGrade: string;
-  // examGrade?: string | null;
-  // remarks?: string | null;
+  studentName: string;
+  courseCode: string;
+  academicYear: string;
+  semester: string;
+  gradeType: string;
+  courseWorkGrade: string;
+  examGrade?: string | null;
+  remarks?: string | null;
 }
 
 export interface CourseResult {
@@ -389,5 +389,85 @@ export interface TranscriptFilters extends PaginatedRequest {
 export interface AuditTrailFilters extends PaginatedRequest {
   transactionType?: string;
   performedById?: number;
+}
+
+// Grade Version History Types
+export interface GradeChange {
+  field: string;
+  from: unknown;
+  to: unknown;
+}
+
+export interface GradeVersionMetadata {
+  updatedBy: string;
+  updatedById: number;
+  lecturerId?: number | null;
+  lecturerCode?: string | null;
+  updateReason?: string | null;
+  oldValues: {
+    gradeType: GradeType;
+    numericGrade?: number | null;
+    letterGrade?: string | null;
+    courseWorkGrade?: number | null;
+    examGrade?: number | null;
+    remarks?: string | null;
+    status: GradeStatus;
+  };
+  newValues: {
+    gradeType: GradeType;
+    numericGrade?: number | null;
+    letterGrade?: string | null;
+    courseWorkGrade?: number | null;
+    examGrade?: number | null;
+    remarks?: string | null;
+    status: GradeStatus;
+  };
+  changes: GradeChange[];
+}
+
+export interface GradeVersion {
+  versionNumber: number;
+  transactionId: string;
+  transactionType: 'CREATE' | 'UPDATE' | 'VERIFY' | 'ACCESS';
+  timestamp: string;
+  performedBy: {
+    id: number | null;
+    username: string;
+    lecturerId?: string | null;
+  };
+  blockchainHash: string;
+  previousHash?: string | null;
+  changes?: {
+    note: string;
+    transactionHash: string;
+  };
+  metadata?: GradeVersionMetadata;
+}
+
+export interface GradeVersionHistory {
+  gradeId: number;
+  currentVersion: {
+    database: Record<string, unknown>;
+    blockchain: Record<string, unknown>;
+    verification: {
+      databaseHash: string;
+      blockchainHash: string;
+      hashesMatch: boolean;
+      status: 'VERIFIED' | 'MISMATCH';
+      lastVerified?: string | null;
+    };
+  };
+  versionHistory: GradeVersion[];
+  totalVersions: number;
+  metadata: {
+    gradeId: number;
+    studentId: number;
+    studentNumber: string;
+    courseCode: string;
+    courseName: string;
+    currentStatus: GradeStatus;
+    isVerified: boolean;
+    totalUpdates: number;
+  };
 }
 
