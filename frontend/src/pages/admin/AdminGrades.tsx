@@ -46,6 +46,11 @@ const GRADE_TYPE_OPTIONS = [
 	{ label: 'Pass/Fail', value: 'PASS_FAIL' },
 ];
 
+function normalize(value: string | number | null | undefined) {
+  if (value == null) return '';
+  return String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 export function AdminGrades() {
 	const queryClient = useQueryClient();
 	const [filters, setFilters] = useState<CourseResultFilters>({ pageNumber: 1, itemsPerPage: 10 });
