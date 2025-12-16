@@ -69,7 +69,7 @@ class MockBlockchainService(BlockchainServiceInterface):
     
     def get_course_result(self, result_id: str) -> Dict[str, Any]:
         """Get a specific grade from blockchain by result ID"""
-        return self._get(f"/getGrade/{result_id}")
+        return self._get(f"/getResult/{result_id}")
 
     def update_course_result(self, result_id: str, grade_data: Dict[str, Any]) -> Dict[str, Any]:
         """

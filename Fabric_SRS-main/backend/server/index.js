@@ -280,7 +280,7 @@ app.get('/verifyGradeIntegrity/:resultId', async (req, res) => {
 });
 
 // 👉 Get grade by resultId
-app.get('/getGrade/:resultId', async (req, res) => {
+app.get('/getResult/:resultId', async (req, res) => {
     try {
         const contract = await getContract('admin', chaincodeName);
         const response = await contract.evaluateTransaction('GetAsset', req.params.resultId);

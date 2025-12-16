@@ -406,10 +406,10 @@ export function AdminGrades() {
 										{ label: 'Exam Grade', db: selectedResult.examGrade ?? '—', chain: selectedResult.blockchainData?.examGrade ?? '—' },
 										{ label: 'Submitted At', db: formatDateTime(selectedResult.submittedAt), chain: selectedResult.submittedAt ? formatDateTime(selectedResult.blockchainData?.submittedAt) : '—' },
 									].map((item) => {
-										const isDifferent = item.db !== item.chain;
+										const isDifferent = normalize(item.db) !== normalize(item.chain);
 										return (
 											<tr
-												key={item.label}
+												key={item.label} 
 												className={isDifferent ? 'border-l-4 border-red-500 bg-red-50' : ''}
 											>
 												<td className="px-4 py-2 font-medium text-gray-900">{item.label}</td>
