@@ -71,16 +71,16 @@ class MockBlockchainService(BlockchainServiceInterface):
         """Get a specific grade from blockchain by result ID"""
         return self._get(f"/getResult/{result_id}")
 
-    def update_course_result(self, result_id: str, grade_data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_course_result(self, grade_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Update an existing course result on the blockchain.
         Calls the proper updateGrade endpoint which creates immutable audit trail.
         """
-        return self._put(f"/updateGrade/{result_id}", grade_data)
+        return self._post("/updateGrade", grade_data)
 
     def get_version_history(self, result_id: str) -> Dict[str, Any]:
         """Get complete version history for a grade from blockchain"""
-        return self._get(f"/getGradeVersionHistory/{result_id}")
+        return self._get(f"/getGradeAudit/{result_id}")
 
     def verify_grade_integrity(self, result_id: str) -> Dict[str, Any]:
         """Real-time verification of grade integrity against blockchain"""

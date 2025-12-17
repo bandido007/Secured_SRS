@@ -39,6 +39,7 @@ permissions = [
             "verify_grade_integrity",        # Lecturer can verify grades haven't been altered
             "view_grade_submission_history", # Lecturer can see when/who submitted grades
             "view_course_students",          # Lecturer can see students enrolled in their courses
+            
         ],
     },
 
