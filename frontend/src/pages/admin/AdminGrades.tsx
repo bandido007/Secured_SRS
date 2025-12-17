@@ -326,18 +326,18 @@ export function AdminGrades() {
 												<span className="font-semibold">{result.letterGrade ?? '—'}</span>
 											) : (
 												<Badge
-													variant={result.status === 'OFFICIAL' ? 'success' : 'secondary'}
+													variant={result.status === 'VALID' ? 'success' : 'secondary'}
 													title="Pass/Fail grade type uses blockchain verification status for context"
-													aria-label={`Pass/Fail grade: ${result.status === 'OFFICIAL' ? 'Pass' : result.status}`}
+													aria-label={`Pass/Fail grade: ${result.status === 'VALID' ? 'Pass' : result.status}`}
 												>
-													{result.status === 'OFFICIAL' ? 'Pass' : result.status}
+													{result.status === 'VALID' ? 'Pass' : result.status}
 												</Badge>
 											)}
 										</TableCell>
 										<TableCell>
 											<Badge
 												variant={
-													result.status === 'OFFICIAL'
+													result.status === 'VALID'
 														? 'success'
 														: result.status === 'PENDING'
 															? 'secondary'

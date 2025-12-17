@@ -205,7 +205,7 @@ export interface EnrollmentInput {
   lecturerId?: number | null;
 }
 
-export type GradeStatus = 'PENDING' | 'OFFICIAL' | 'DISPUTED';
+export type GradeStatus = 'PENDING' | 'VALID' | 'DISPUTED';
 export type GradeType = 'NUMERIC' | 'LETTER' | 'PASS_FAIL';
 
 export interface BlockchainData {
@@ -220,14 +220,7 @@ export interface BlockchainData {
   "courseWorkGrade": string;
   "examGrade": string;
   "remarks": string | null;
-  studentName: string;
-  courseCode: string;
-  academicYear: string;
-  semester: string;
-  gradeType: string;
-  courseWorkGrade: string;
-  examGrade?: string | null;
-  remarks?: string | null;
+  "numericGrade": string | null;
 }
 
 export interface CourseResult {
